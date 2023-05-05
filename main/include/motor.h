@@ -17,22 +17,27 @@
 
 #include "./driver/gpio.h"
 #include "./driver/ledc.h"
+#include <string.h>
 
 #define GPIO_OUTPUT_AIN1    14 //AIN1
 #define GPIO_OUTPUT_BIN1    12 //BIN1
 #define GPIO_OUTPUT_AIN2    19 //AIN2
 #define GPIO_OUTPUT_BIN2    17 //BIN2
-#define GPIO_OUTPUT_PWMA   18 //PWMA(right wheel)
-#define GPIO_OUTPUT_PWMB   16 //PWMB(left wheel)
+#define GPIO_OUTPUT_PWMA   18 //PWMA
+#define GPIO_OUTPUT_PWMB   16 //PWMB
 #define DUTY_RESOLUTION LEDC_TIMER_13_BIT
+
+#define STOP "110"
+#define FORWARD "101"
+#define BACKWARD "010"
 
 void motor_config();
 int perDuty2Duty(int perDuty);
 void forward(int per);
 void backward(int per);
-
-void forward_PID(int speed_new);
 void stop();
+
+void car_control(const char* cmd);
 
 
 #endif

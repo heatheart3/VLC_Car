@@ -1,7 +1,5 @@
 #include "./include/motor.h"
 
-int motor_speed = 0;
-
 void motor_config()
 {
     ledc_timer_config_t ledc_timer = { 
@@ -17,14 +15,13 @@ void motor_config()
         .timer_sel = LEDC_TIMER_0,
         .gpio_num = GPIO_OUTPUT_PWMA,
         .channel = LEDC_CHANNEL_0,
-        .duty = motor_speed,
+        .duty = 3095,
         .intr_type = LEDC_INTR_DISABLE,
         .hpoint = 0
     };
     ledc_channel_config(&ledc_channel);
     //configure PWMB
     ledc_channel.gpio_num = GPIO_OUTPUT_PWMB;
-    ledc_channel.channel = LEDC_CHANNEL_1;
     ledc_channel_config(&ledc_channel);
     //configure AIN1,AIN2,BIN1,BIN2
     gpio_config_t io_config;
@@ -47,18 +44,7 @@ void forward(int per)
     stop();
     ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, perDuty2Duty(per));
     ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
-    // ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1, perDuty2Duty(per));
-    // ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1);
 
-    gpio_set_level(GPIO_OUTPUT_AIN1, 0);
-    gpio_set_level(GPIO_OUTPUT_AIN2, 1);
-    gpio_set_level(GPIO_OUTPUT_BIN1, 1);
-    gpio_set_level(GPIO_OUTPUT_BIN2, 0);
-}
-void forward_PID(int speed_new)
-{
-    stop();
-    motor_speed = speed_new;
     gpio_set_level(GPIO_OUTPUT_AIN1, 0);
     gpio_set_level(GPIO_OUTPUT_AIN2, 1);
     gpio_set_level(GPIO_OUTPUT_BIN1, 1);
@@ -84,4 +70,20 @@ void stop()
     gpio_set_level(GPIO_OUTPUT_AIN2, 0);
     gpio_set_level(GPIO_OUTPUT_BIN1, 0);
     gpio_set_level(GPIO_OUTPUT_BIN2, 0);
+}
+
+void car_control(const char* cmd)
+{
+    if(strcmp(cmd,STOP)==0)
+    {
+        stop();
+    }
+    else if(strcmp(cmd,FORWARD)==0)
+    {
+        forward(50);
+    }
+    else if(strcmp(cmd,BACKWARD)==0)
+    {
+        backward(50);
+    }
 }
