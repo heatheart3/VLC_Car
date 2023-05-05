@@ -32,6 +32,6 @@ void turn_right45()
 }
 void turn_forward()
 {
-    ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_3, 75);
+    ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_3, 73);
     ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_3);
 }

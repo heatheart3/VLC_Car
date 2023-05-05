@@ -16,13 +16,14 @@
 #include "./include/light.h"
 #include "./include/motor.h"
 #include "./include/servo.h"
+#include "./include/encoder.h"
 
-/**
- * Brief:
- * This test code shows how to configure gpio and how to use gpio interrupt.
- *
- */
-
+// A0 32
+// A1 33
+// B6 22
+// B7 23
+extern int encoder_edge_cnt;
+extern int data[200];
  
 
 void app_main(void)
@@ -30,17 +31,21 @@ void app_main(void)
     light_ook_config();
     motor_config();
     servo_config();
-
-
-    turn_left45();
+    encoder_config();
+    encoder_timer_config();
+    // turn_left45();
+    // turn_forward();
+    
+    // vTaskDelay(300);
+    // stop();
     turn_forward();
-    forward(30);
-    vTaskDelay(300);
-    stop();
+    forward(20);
+    
+    while (1)
+    {
 
-    uint8_t a = 1;
-    while(1) {
-            a *= 1;
     }
+    
+
 }
 
