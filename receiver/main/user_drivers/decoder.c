@@ -2,7 +2,7 @@
 
 uint8_t decode_half_per(uint16_t avg)
 {
-    if(avg > 3400)
+    if(avg > 3900)
     {   
         return 1;
     }
@@ -25,7 +25,7 @@ void decode(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode
     uint16_t steady_edge = 0;
     adc_digi_output_data_t *temp_point;
     uint8_t double_mark = 0;
-    uint16_t real_vlts[3000];
+    uint16_t real_vlts[3000], temp_vlts[2];
 
     // vTaskDelay(1000 / portTICK_PERIOD_MS);
     for (int i = 0; i < data_num; i += SOC_ADC_DIGI_RESULT_BYTES)
@@ -33,38 +33,47 @@ void decode(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode
         adc_digi_output_data_t *p = (void *)&data[i];
         if (check_valid_data(p))
         {
-            temp_vlt = p->type1.data;
+            //edge condition
+            if( (i+SOC_ADC_DIGI_RESULT_BYTES) == data_num && (double_mark + 1) != 2)
+            {
+                real_vlts[i/SOC_ADC_DIGI_RESULT_BYTES] = p->type1.data;
+                break;
+            }
 
-            //Half Window update
-            if(i < half_per_points_num * SOC_ADC_DIGI_RESULT_BYTES)
+            temp_vlts[double_mark++] = p->type1.data;
+            if(double_mark == 2)
+            {
+                double_mark = 0;
+                real_vlts[(i/SOC_ADC_DIGI_RESULT_BYTES) - 1] = temp_vlts[1];
+                real_vlts[(i/SOC_ADC_DIGI_RESULT_BYTES)] = temp_vlts[0];
+            }
+            // temp_vlt = p->type1.data;
+            
+        }
+    }
+    for(int i = 0; i < data_num/SOC_ADC_DIGI_RESULT_BYTES; i++)
+    {
+        if(i < half_per_points_num)
             {
                 // Half Window is starting up
-                half_per_win_sum += p->type1.data;
-                half_win_right += SOC_ADC_DIGI_RESULT_BYTES;
+                half_per_win_sum += real_vlts[i];
+                half_win_right ++;
             }        
             else
             {
-                if(i == half_per_points_num * SOC_ADC_DIGI_RESULT_BYTES)
+                if(i == half_per_points_num)
                 {
                     start_up_mark = true;
                 }
                 //Half Window size has expand to half period points num
-                temp_point = (void *) &data[half_win_left];
-                half_per_win_sum += p->type1.data - temp_point->type1.data;
+                half_per_win_sum += real_vlts[i] - real_vlts[half_win_left];
                 half_per_win_avg = half_per_win_sum / half_per_points_num;
-                half_win_left += SOC_ADC_DIGI_RESULT_BYTES;
-                half_win_right += SOC_ADC_DIGI_RESULT_BYTES;
+                half_win_left ++;
+                half_win_right ++;
             }
             // printf("sum:%lld\n", half_per_win_sum);
             // printf("avg:%d\n", half_per_win_avg);
-            // printf("value:%d\n", temp_vlt);
-
-            temp_vlts[double_mark++] = temp_vlt;
-            if(double_mark == 2)
-            {
-                double_mark = 0;
-                printf("value:%ld\nvalue:%ld\n", temp_vlts[1], temp_vlts[0]);
-            }
+            // printf("value:%d\n", real_vlts[i]);
 
             if(start_up_mark)
             {
@@ -92,8 +101,8 @@ void decode(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode
                 }
             }
 
-        }
     }
+    
     *decode_data_num = decode_data_cnt;
 }
 

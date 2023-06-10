@@ -9,7 +9,7 @@ void continuous_adc_init(adc_channel_t *channel, uint8_t channel_num, adc_contin
     //Configure of ADC buffer
     adc_continuous_handle_cfg_t adc_config = {
         .max_store_buf_size = 8192,
-        .conv_frame_size = EXAMPLE_READ_LEN,
+            .conv_frame_size = EXAMPLE_READ_LEN,
     };
     ESP_ERROR_CHECK(adc_continuous_new_handle(&adc_config, &handle));
 
