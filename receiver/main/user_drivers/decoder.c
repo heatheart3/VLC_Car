@@ -1,5 +1,7 @@
 #include "./include/decoder.h"
 
+extern int overflow_mark;
+
 uint8_t decode_half_per(uint16_t avg)
 {
     if(avg > 3900)
@@ -27,7 +29,6 @@ void decode(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode
     uint8_t double_mark = 0;
     uint16_t real_vlts[3000], temp_vlts[2];
 
-    // vTaskDelay(1000 / portTICK_PERIOD_MS);
     for (int i = 0; i < data_num; i += SOC_ADC_DIGI_RESULT_BYTES)
     {
         adc_digi_output_data_t *p = (void *)&data[i];
@@ -47,10 +48,9 @@ void decode(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode
                 real_vlts[(i/SOC_ADC_DIGI_RESULT_BYTES) - 1] = temp_vlts[1];
                 real_vlts[(i/SOC_ADC_DIGI_RESULT_BYTES)] = temp_vlts[0];
             }
-            // temp_vlt = p->type1.data;
-            
         }
     }
+
     for(int i = 0; i < data_num/SOC_ADC_DIGI_RESULT_BYTES; i++)
     {
         if(i < half_per_points_num)
@@ -73,7 +73,13 @@ void decode(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode
             }
             // printf("sum:%lld\n", half_per_win_sum);
             // printf("avg:%d\n", half_per_win_avg);
-            // printf("value:%d\n", real_vlts[i]);
+            printf("value:%d\n", real_vlts[i]);
+             if(overflow_mark == 1)
+            {
+                ESP_LOGI("POOL", "OVERFLOW");
+                printf("value:-4000\n");
+                overflow_mark = 0;
+             }
 
             if(start_up_mark)
             {
@@ -100,7 +106,6 @@ void decode(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode
                     }
                 }
             }
-
     }
     
     *decode_data_num = decode_data_cnt;
