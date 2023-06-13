@@ -77,7 +77,7 @@ void decode(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode
              if(overflow_mark == 1)
             {
                 ESP_LOGI("POOL", "OVERFLOW");
-                printf("value:-4000\n");
+                printf("value:-8000\n");
                 overflow_mark = 0;
              }
 

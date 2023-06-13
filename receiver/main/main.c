@@ -63,16 +63,9 @@ void app_main(void)
             ESP_ERROR_CHECK(adc_continuous_start(handle));
             conv_over = 0;
         }
-        ret = adc_continuous_read(handle, result, EXAMPLE_READ_LEN, &ret_num, 0);
+        ret = adc_continuous_read(handle, result, EXAMPLE_READ_LEN, &ret_num, 10);
         // ESP_LOGI("TASK", "ret is %x, ret_num is %"PRIu32, ret, ret_num);
         
-        // if(overflow_mark == 1)
-        // {
-        //     ESP_LOGI("POOL", "OVERFLOW");
-        //     printf("value:-4000\n");
-        //     overflow_mark = 0;
-        // }
-
         if (ret == ESP_OK)
         {
             ESP_ERROR_CHECK(adc_continuous_stop(handle));
@@ -82,6 +75,8 @@ void app_main(void)
             memset(decode_data, 0, sizeof(decode_data));
             printf("value:-4000\n");
             decode(result, ret_num, decode_data_result, &mes_num);
+            printf("value:-4000\n");
+
             process_count += ret_num / SOC_ADC_DIGI_RESULT_BYTES;
             // for(int i = 0; i < mes_num; i++)
             // {
