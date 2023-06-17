@@ -15,7 +15,7 @@ void decode(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode
 {
 
     uint16_t temp_vlt = 0;    
-    uint8_t per_points_num = 164;
+    uint8_t per_points_num = 162;
     uint8_t half_per_points_num = per_points_num /2;
     //half_win_left -> half_period_window_left  
     uint16_t half_win_left = 0, half_win_right = 0;
@@ -73,7 +73,7 @@ void decode(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode
             }
             // printf("sum:%lld\n", half_per_win_sum);
             // printf("avg:%d\n", half_per_win_avg);
-            printf("value:%d\n", real_vlts[i]);
+            // printf("value:%d\n", real_vlts[i]);
              if(overflow_mark == 1)
             {
                 ESP_LOGI("POOL", "OVERFLOW");
@@ -85,7 +85,7 @@ void decode(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode
             {
                 if(steady_mark)
                 {
-                    if((i - steady_edge) % (half_per_points_num) == 0)
+                    if((i - steady_edge) % (half_per_points_num + 1) == 0)
                     {
                         // uint16_t temp_delta = i - steady_edge;
                         // printf("i:%d\n", temp_delta);
@@ -96,7 +96,7 @@ void decode(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode
                 else
                 {
                     //whole trend is a horizenal line
-                    if(half_per_win_avg >= 4000)
+                    if(half_per_win_avg == 4095)
                     {
                         steady_mark = true;
                         decode_data[decode_data_cnt++] = decode_half_per(half_per_win_avg);

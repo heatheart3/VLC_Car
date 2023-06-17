@@ -73,15 +73,17 @@ void app_main(void)
             uint16_t mes_num;
             memset(mes_buffer, 0, sizeof(mes_buffer));
             memset(decode_data, 0, sizeof(decode_data));
-            printf("value:-4000\n");
+            printf("value:-1\n");
             decode(result, ret_num, decode_data_result, &mes_num);
-            printf("value:-4000\n");
+
 
             process_count += ret_num / SOC_ADC_DIGI_RESULT_BYTES;
-            // for(int i = 0; i < mes_num; i++)
-            // {
-            //     printf("Value:%d\n", decode_data_result[i]);
-            // }
+            for(int i = 0; i < mes_num; i++)
+            {
+                printf("Value:%d\n", decode_data_result[i]);
+            }
+            // printf("value:10\n");
+
             // printf("mes_num: %d\n", mes_num);
 
                     // /***sensor part: judege quality of communication***/
