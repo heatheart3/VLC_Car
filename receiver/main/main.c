@@ -25,16 +25,10 @@
 #define VALID_MES_LEN 16
 
 #define HEADER_THRES 20
-#define DOUBLE_HIGH_THRES 12
-#define DOUBLE_LOW_THRES 12
+#define DOUBLE_HIGH_THRES 14
+#define DOUBLE_LOW_THRES 14
 #define SINGLE_HIGH_THRES 5
 #define SINGLE_LOW_THRES 5
-
-// #define HEADER_THRES 50
-// #define DOUBLE_HIGH_THRES 20
-// #define DOUBLE_LOW_THRES 20
-// #define SINGLE_HIGH_THRES 5
-// #define SINGLE_LOW_THRES 5
 
 char decode_data[DECODED_MES_LEN] = {0};
 char mes_buffer[VALID_MES_LEN + 4] = {0};
@@ -54,14 +48,6 @@ extern QueueHandle_t encoder_queue;
 void decode(const char *encode, char *data)
 {
     int j = 0;
-    // printf("Start decode\n");
-    // printf("decode_ori:");
-    // for (int i = 0; i < VALID_MES_LEN; i++)
-    // {
-    //     printf("%d", encode[i]);
-    // }
-    // printf("\n");
-    // printf("decode_data:");
     for (int i = 0; i < DECODED_MES_LEN; i++)
     {
         if (encode[j] == 0)
@@ -75,7 +61,6 @@ void decode(const char *encode, char *data)
             else
             {
                 data[i] = '1';
-                // printf("1");
             }
         }
         else
@@ -89,12 +74,10 @@ void decode(const char *encode, char *data)
             else
             {
                 data[i] = '0';
-                // printf("0");
             }
         }
         j += 2;
     }
-    // printf("\n");
 
     char decode_ascii = 0;
     int tmp_bit = 0;
@@ -103,7 +86,6 @@ void decode(const char *encode, char *data)
         tmp_bit = data[i] - '0';
         decode_ascii = decode_ascii | (tmp_bit << (7 - i));
     }
-    // printf("%c\n",decode_ascii);
     mes_result[mes_counter] = decode_ascii;
     mes_counter++;
 }
@@ -114,17 +96,10 @@ void app_main(void)
     motor_config();
 
     servo_config();
-
-    // pcnt_unit_handle_t left_pcnt_unit = NULL;
-    // encoder_init(&left_pcnt_unit,LEFT_ENCODER_A,LEFT_ENCODER_B);
-    // pcnt_unit_handle_t right_pcnt_unit = NULL;
-    // encoder_init(&right_pcnt_unit,RIGHT_ENCODER_A,RIGHT_ENCODER_B);
-
     turn_forward();
 
     /*variable for vlc*/
     u_int16_t tmp_vlt;
-
     uint8_t low_count = 0;
     uint8_t high_count = 0;
     int bit_counter = -1;
@@ -158,15 +133,6 @@ void app_main(void)
     {
         while (1)
         {
-            // pcnt_unit_get_count(left_pcnt_unit,&countA);
-            // pcnt_unit_get_count(right_pcnt_unit,&countB);
-            //             printf("countA:%d\n\r",countA);
-            //                         printf("countB:%d\n\r",countB);
-            // pwmB = Incremental_PI(countB, countA);
-            // pcnt_unit_clear_count(left_pcnt_unit);
-            // pcnt_unit_clear_count(right_pcnt_unit);
-            // // right_wheel_forward(pwmB);
-            // printf("PWMB:%d\n\r",pwmB);
 
             if (mes_counter >= 1000)
             {
@@ -179,7 +145,7 @@ void app_main(void)
                 low_count = 0;
                 memset(mes_buffer, 0, sizeof(mes_buffer));
                 memset(decode_data, 0, sizeof(decode_data));
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < 100; i++)
                 {
                     printf("%c\n", mes_result[i]);
                 }
@@ -202,7 +168,7 @@ void app_main(void)
             {
 
                 // ESP_LOGI("TASK", "ret is %x, ret_num is %" PRIu32, ret, ret_num);?
-                ESP_ERROR_CHECK(adc_continuous_stop(handle));
+                // ESP_ERROR_CHECK(adc_continuous_stop(handle));
 
                 int adc_inverse = 0;
                 int tmp_adc[2] = {0};
@@ -366,7 +332,7 @@ void app_main(void)
                         break;
                     }
                 }
-                ESP_ERROR_CHECK(adc_continuous_start(handle));
+                // ESP_ERROR_CHECK(adc_continuous_start(handle));
             }
             //  vTaskDelay(1);
         }

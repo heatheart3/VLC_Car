@@ -38,34 +38,17 @@ void app_main(void)
     servo_config();
     gpio_set_level(GPIO_RIGHT_LIGHT, 1);
 
-    // gptimer_handle_t gptimer=NULL;
-    // my_timer_init(&gptimer);
-
     uint16_t cnt = 0;
     uint8_t mask = 0, temp = 0;
     const uint8_t state_amount = STATE_NUM;
-    const uint32_t interval = 200;
+    const uint32_t interval = 10;
     const uint32_t test_period = state_amount * interval;
 
     enum CAR_STATE current_state= ENUM_STOP;
 
-
-    // while(1)
-    // {
-    //     gpio_set_level(GPIO_RIGHT_LIGHT,0);
-    //     udelay(TRANSMIT_PERIOD);
-    //     gpio_set_level(GPIO_RIGHT_LIGHT,1);
-    //     udelay(TRANSMIT_PERIOD);
-    // }
-
     while (1)
     {
         cnt = 0;
-
-        // vTaskDelay(200 / portTICK_PERIOD_MS);
-        // transmit_ascii("A", GPIO_RIGHT_LIGHT);
-        // gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-
         while (cnt <= test_period + 1)
         {
             if (cnt % interval == 0)
@@ -122,7 +105,6 @@ void app_main(void)
                 mask = 1 - mask;
             }
             cnt++;
-            // my_delay(&gptimer);
             udelay(TRANSMIT_PERIOD);
         }
     }
