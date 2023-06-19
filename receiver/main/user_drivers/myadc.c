@@ -15,7 +15,7 @@ void continuous_adc_init(adc_channel_t *channel, uint8_t channel_num, adc_contin
 
 
     adc_continuous_config_t dig_cfg = {
-        .sample_freq_hz =100 * 1000,       // valid range: 20KHz~2MHz   
+        .sample_freq_hz =500 * 1000,       // valid range: 20KHz~2MHz   
         .conv_mode = EXAMPLE_ADC_CONV_MODE, // Only use ADC Channel 1
         .format = EXAMPLE_ADC_OUTPUT_TYPE,
     };

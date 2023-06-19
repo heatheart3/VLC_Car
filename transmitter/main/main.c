@@ -41,7 +41,7 @@ void app_main(void)
     uint16_t cnt = 0;
     uint8_t mask = 0, temp = 0;
     const uint8_t state_amount = STATE_NUM;
-    const uint32_t interval = 10;
+    const uint32_t interval = 100;
     const uint32_t test_period = state_amount * interval;
 
     enum CAR_STATE current_state= ENUM_STOP;

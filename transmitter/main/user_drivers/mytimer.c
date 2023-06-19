@@ -60,6 +60,6 @@ void udelay(int us)
 {
     while(us--)
     {
-        delay_clock(160);
+        delay_clock(16);
     }
 }

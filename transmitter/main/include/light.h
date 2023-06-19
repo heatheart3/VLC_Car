@@ -16,7 +16,7 @@
 //10=195KHz
 //50= 50KHz
 //100=25KHz
-#define TRANSMIT_PERIOD 100 //US
+#define TRANSMIT_PERIOD 50 //US
 
 
 enum CAR_STATE{

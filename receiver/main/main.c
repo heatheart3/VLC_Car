@@ -288,7 +288,7 @@ void app_main(void)
         {
 
             // ESP_LOGI("TASK", "ret is %x, ret_num is %" PRIu32, ret, ret_num);?
-            // ESP_ERROR_CHECK(adc_continuous_stop(handle));
+            ESP_ERROR_CHECK(adc_continuous_stop(handle));
 
             int adc_inverse = 0;
             int tmp_adc[2] = {0};
@@ -304,8 +304,8 @@ void app_main(void)
                         for (int tmpX = 1; tmpX >= 0; tmpX--)
                         {
                             tmp_vlt = tmp_adc[tmpX];
-                            // printf("%d\n\r", tmp_vlt);
-                            demodulation(tmp_vlt);
+                            printf("%d\n\r", tmp_vlt);
+                            // demodulation(tmp_vlt);
                         }
                         adc_inverse = 0;
                     }
@@ -316,7 +316,7 @@ void app_main(void)
                     break;
                 }
             }
-            // ESP_ERROR_CHECK(adc_continuous_start(handle));
+            ESP_ERROR_CHECK(adc_continuous_start(handle));
         }
     }
 }
