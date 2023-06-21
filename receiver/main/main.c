@@ -44,7 +44,9 @@ void app_main(void)
     //sensor mark: used to indicate light sensor logic status
     uint8_t sensor_mask = 0, sensor_start_mark = 0;
     //using slope to sensor
-    uint8_t decode_data_result[200];
+    uint8_t decode_data_result[2000];
+    uint16_t mes_num;
+
     adc_continuous_handle_t conti_adc_handle = NULL;
     adc_continuous_evt_cbs_t adc1_handle;
     bool collected_over_mark = false;
@@ -56,7 +58,7 @@ void app_main(void)
     ESP_ERROR_CHECK(adc_continuous_register_event_callbacks(conti_adc_handle, &adc1_handle, NULL));
     ESP_ERROR_CHECK(adc_continuous_start(conti_adc_handle));
     // xTaskCreate(caculate_process_speed, "caculate speed", 4096, NULL, 3 , NULL);
-    
+
 
     while (1)
     {
@@ -64,60 +66,41 @@ void app_main(void)
         ret = adc_continuous_read(conti_adc_handle, result, EXAMPLE_READ_LEN, &ret_num, 10);
         // ESP_LOGI("TASK", "ret is %x, ret_num is %"PRIu32, ret, ret_num);
         //可视化调试部分
+        if(overflow_mark == 1)
+        {
+            ESP_LOGI("POOL", "OVERFLOW");
+            printf("value:-8000\n");
+            overflow_mark = 0;
+        }
+
+
         collected_over_mark = collect_data(result,ret_num,collected_raw_data,sizeof(collected_raw_data)/sizeof(uint16_t));
         if(collected_over_mark)
         {
             ESP_ERROR_CHECK(adc_continuous_stop(conti_adc_handle));
-            for(uint16_t i = 0; i < (sizeof(collected_raw_data)/sizeof(uint16_t)); i++)
+
+            // for(uint16_t i = 0; i < (sizeof(collected_raw_data)/sizeof(uint16_t)); i++)
+            // {
+            //     printf("value:%d\n", collected_raw_data[i]);
+            // }
+            printf("value:-2\n");
+            decode(collected_raw_data, sizeof(collected_raw_data)/sizeof(uint16_t), decode_data_result, &mes_num);
+            // printf("%d\n", mes_num);
+            for(int i = 0; i < mes_num; i++)
             {
-                printf("value:%d\n", collected_raw_data[i]);
+                printf("decoded data:%d\n", decode_data_result[i]);
             }
             ESP_ERROR_CHECK(adc_continuous_start(conti_adc_handle));
         }
-        
-        if (ret == ESP_OK)
+
+
+        if (ret == -2)
         {
             ESP_ERROR_CHECK(adc_continuous_stop(conti_adc_handle));
-            uint16_t mes_num;
             memset(mes_buffer, 0, sizeof(mes_buffer));
             memset(decode_data, 0, sizeof(decode_data));
             // decoder(result, ret_num, decode_data_result, &mes_num);
-            process_count += ret_num / SOC_ADC_DIGI_RESULT_BYTES;
-            // for(int i = 0; i < mes_num; i++)
-            // {
-            //     printf("Value:%d\n", decode_data_result[i]);
-            // }
-
-            // printf("mes_num: %d\n", mes_num);
-
-                    // /***sensor part: judege quality of communication***/
-                    // sensor_mask = sensor_by_slope(last_vlt, tmp_vlt);
-                    
-                    //     //only when signal is changed from square waves to irregular wave, sensoring makes sense.
-                    //     //so judge this condition first
-                    // if(sensor_start_mark != 0)
-                    // {
-                    //     if(sensor_mask == 1 )
-                    //     {
-                    //         break;
-                    //     }
-                    // }
-                    // else
-                    // {
-                    //     //first detected a square wave, then set sensor_start_mark to 1
-                    //     if(sensor_mask == 0)
-                    //     {
-                    //         sensor_start_mark = 1;
-                    //     }
-                    // }
-                    // /***sensor part end***/
-
-            }
-            //the front car's motion has changed
-            if(sensor_mask == 1)
-            {
-                break;
-            }
+        }
 
     }
 

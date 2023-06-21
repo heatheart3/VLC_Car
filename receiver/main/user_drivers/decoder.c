@@ -17,7 +17,7 @@ void decoder(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decod
     memset(raw_vlts, 0xcc, sizeof(raw_vlts));
     clean_data(data,data_num,raw_vlts);
     
-    decode(raw_vlts,data_num, decode_data, decode_data_num);
+    decode(raw_vlts,data_num/SOC_ADC_DIGI_RESULT_BYTES, decode_data, decode_data_num);
     
 }
 
@@ -49,6 +49,22 @@ void clean_data(uint8_t *data, int data_num, uint16_t *result_data)
     }
 }
 
+uint16_t avg_caculate(uint16_t left, uint16_t right, uint16_t *raw_data, uint16_t data_num)
+{
+    int sum = 0;
+    uint16_t avg = 0;
+    //overflow
+    if(right >= data_num || left >= data_num)
+        return 0xffff;
+
+    for (uint16_t i  = left; i < right; i++)
+    {
+        sum += raw_data[i];
+    }
+    avg = sum / (right - left);
+    return avg;
+}
+
 bool collect_data(uint8_t *data, int data_num, uint16_t* collected_raw_data, uint16_t collected_data_array_size)
 {
     uint16_t raw_vlts[3000];
@@ -76,78 +92,108 @@ bool collect_data(uint8_t *data, int data_num, uint16_t* collected_raw_data, uin
     return false;
 }
 
-void decode(uint16_t *raw_data, int data_num, uint8_t* decode_data, uint16_t* decode_data_num)
+void raw_data_avg_caculate(uint16_t *raw_data, int data_num, uint16_t *result_data, uint16_t *result_data_num)
 {
-    uint16_t temp_vlt = 0;    
-    uint8_t per_points_num = 162;  // 实际使用的周期长度是164, 这里写法是为了和VOFA波形对应
+    uint8_t per_points_num = 144;  // 整个周期的长度
     uint8_t half_per_points_num = per_points_num /2;
+    uint8_t period = per_points_num/2 + 1;
     //half_win_left -> half_period_window_left  
     uint16_t half_win_left = 0, half_win_right = 0;
-    uint16_t whole_per_left, whole_per_right;
-    uint64_t half_per_win_sum = 0, whole_per_win_sum = 0;
-    uint16_t half_per_win_avg = 0, whole_per_win_avg;
-    uint16_t win_start_up_cnt = 0, decode_data_cnt = 0;
-    bool steady_mark  = false, start_up_mark = false;
-    uint16_t steady_edge = 0;
-    adc_digi_output_data_t *temp_point;
+    uint64_t half_per_win_sum = 0;
+    uint16_t half_per_win_avg = 0;
+    uint16_t avg_count = 0;
 
-    
-    for(int i = 0; i < data_num/SOC_ADC_DIGI_RESULT_BYTES; i++)
+    for (int i = 0; i < data_num; i++)
     {
         if(i < half_per_points_num)
-            {
-                // Half Window is starting up
-                half_per_win_sum += raw_data[i];
-                half_win_right ++;
-            }        
-            else
-            {
-                if(i == half_per_points_num)
-                {
-                    start_up_mark = true;
-                }
-                //Half Window size has expand to half period points num
-                half_per_win_sum += raw_data[i] - raw_data[half_win_left];
-                half_per_win_avg = half_per_win_sum / half_per_points_num;
-                half_win_left ++;
-                half_win_right ++;
-            }
-            // printf("sum:%lld\n", half_per_win_sum);
-            // printf("avg:%d\n", half_per_win_avg);
-            printf("value:%d\n", raw_data[i]);
-             if(overflow_mark == 1)
-            {
-                ESP_LOGI("POOL", "OVERFLOW");
-                printf("value:-8000\n");
-                overflow_mark = 0;
-            }
+        {
+            half_per_win_sum += raw_data[i];
+        }
+        else
+        {
+            half_per_win_sum += raw_data[half_win_right] - raw_data[half_win_left];
+            result_data[avg_count++] = half_per_win_sum/half_per_points_num;
+            // printf("average:%d\n" ,result_data[avg_count-1]);
+        }
 
-            if(start_up_mark)
+        if(i < half_per_points_num)
+        {
+            half_win_right++;
+        }
+        else
+        {
+            half_win_left++;
+            half_win_right++;
+        }
+    }
+    *result_data_num = avg_count;
+}
+
+void decode(uint16_t *raw_data, int data_num, uint8_t* decode_data, uint16_t* decode_data_num)
+{
+    uint8_t per_points_num = 144;  // 实际使用的周期长度是164, 这里写法是为了和VOFA波形对应
+    uint8_t half_per_points_num = per_points_num /2;
+    uint8_t period = per_points_num/2 + 1;
+    //half_win_left -> half_period_window_left  
+    uint16_t decode_data_cnt = 0;
+    bool start_up_mark = false;
+    uint16_t goal_value = 0;
+    adc_digi_output_data_t *temp_point;
+    int8_t trend = 0;
+    
+    static uint16_t avg_data[5000];
+    uint16_t avg_data_num = 0;
+    raw_data_avg_caculate(raw_data, data_num, avg_data, &avg_data_num);
+
+    int i = 0;
+    while(i < avg_data_num)
+    {
+        if(start_up_mark)
+        {
+            uint16_t temp = avg_data[i];
+            if(4095 - 2 * avg_data[i] < 0)
+                goal_value = 4095;
+            else
+                goal_value = 0;
+            
+            if(avg_data[i] != goal_value)
             {
-                if(steady_mark)
-                {
-                    if((i - steady_edge) % (half_per_points_num + 1) == 0) // 半个周期实际是81 + 1
-                    {
-                        // uint16_t temp_delta = i - steady_edge;
-                        // printf("i:%d\n", temp_delta);
-                        // printf("avg:%d\n", half_per_win_avg);
-                        decode_data[decode_data_cnt++] = decode_half_per(half_per_win_avg);
-                    }
-                }
+                if(abs(avg_data[i - 1] - goal_value) < abs(avg_data[i + 1] - goal_value))
+                    trend = -1;
                 else
+                    trend = 1;
+                while(temp != goal_value)
                 {
-                    //whole trend is a horizenal line
-                    if(half_per_win_avg == 4095)
-                    {
-                        steady_mark = true;
-                        decode_data[decode_data_cnt++] = decode_half_per(half_per_win_avg);
-                        steady_edge = i;
-                        // printf("edge:%d\n", steady_edge);
-                        // printf("value:-2000\n");
-                    }
+                    i = i + trend;
+                    //edge condition
+                    if(i >= avg_data_num)
+                        break; 
+                    temp = avg_data[i];
                 }
             }
+            decode_data[decode_data_cnt++] = decode_half_per(temp);
+            // printf("mes:%d\n", decode_data[decode_data_cnt - 1]);
+        }
+        else
+        {
+            if(avg_data[i] == 4095)
+            {
+                decode_data[decode_data_cnt++] = decode_half_per(avg_data[i]);
+                start_up_mark = true;
+            }
+        }
+       
+        if(start_up_mark)
+        {
+            i += period;
+        }
+        else
+        {
+            i++;
+        }
+        if(i > avg_data_num)
+            break;
     }
-    
+
     *decode_data_num = decode_data_cnt;
 }
