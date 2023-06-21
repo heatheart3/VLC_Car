@@ -10,6 +10,7 @@
 #include "./include/motor.h"
 #include "./include/servo.h"
 #include "./include/mypid.h"
+#include "./include/decoder.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -30,20 +31,20 @@
 #define SINGLE_HIGH_THRES 5
 #define SINGLE_LOW_THRES 5
 
-char decode_data[DECODED_MES_LEN] = {0};
-char mes_buffer[VALID_MES_LEN + 4] = {0};
-char mes_result[1000] = {0};
-int mes_counter = 0;
-int decect_header_counter = 0;
+static char decode_data[DECODED_MES_LEN] = {0};
+static char mes_buffer[VALID_MES_LEN + 4] = {0};
+static char mes_result[1000] = {0};
+static int mes_counter = 0;
+static int decect_header_counter = 0;
 
 int overflow_mark = 0;
 
 /*variable for vlc demodulation*/
-u_int16_t tmp_vlt = 0;
-uint8_t low_count = 0;
-uint8_t high_count = 0;
-int bit_counter = -1;
-char mes_start_flg = 0;
+static u_int16_t tmp_vlt = 0;
+static uint8_t low_count = 0;
+static uint8_t high_count = 0;
+static int bit_counter = -1;
+static char mes_start_flg = 0;
 /*variable for vlc demodulation*/
 
 enum CAR_STATE current_state = ENUM_STOP;
@@ -227,96 +228,106 @@ static void inline demodulation(const int tmp_vlt)
 void app_main(void)
 {
 
-    motor_config();
-    servo_config();
-    turn_forward();
+    // motor_config();
+    // servo_config();
+    // turn_forward();
 
-    esp_err_t ret;
-    uint32_t ret_num = 0;
-    uint8_t result[EXAMPLE_READ_LEN] = {0};
-    memset(result, 0xcc, EXAMPLE_READ_LEN);
+    // esp_err_t ret;
+    // uint32_t ret_num = 0;
+    // uint8_t result[EXAMPLE_READ_LEN] = {0};
+    // memset(result, 0xcc, EXAMPLE_READ_LEN);
 
-    adc_continuous_handle_t handle = NULL;
-    adc_continuous_evt_cbs_t adc1_handle;
-    adc1_handle.on_pool_ovf = detect_overflow;
-    continuous_adc_init(channel, sizeof(channel) / sizeof(adc_channel_t), &handle);
-    ESP_ERROR_CHECK(adc_continuous_register_event_callbacks(handle, &adc1_handle, NULL));
-    ESP_ERROR_CHECK(adc_continuous_start(handle));
+    // adc_continuous_handle_t handle = NULL;
+    // adc_continuous_evt_cbs_t adc1_handle;
+    // adc1_handle.on_pool_ovf = detect_overflow;
+    // continuous_adc_init(channel, sizeof(channel) / sizeof(adc_channel_t), &handle);
+    // ESP_ERROR_CHECK(adc_continuous_register_event_callbacks(handle, &adc1_handle, NULL));
+    // ESP_ERROR_CHECK(adc_continuous_start(handle));
 
-    memset(mes_buffer, 0, sizeof(mes_buffer));
-    memset(decode_data, 0, sizeof(decode_data));
+    // memset(mes_buffer, 0, sizeof(mes_buffer));
+    // memset(decode_data, 0, sizeof(decode_data));
+    printf("Start demo!\n");
+    uint8_t symbols[]={34,1,25,18,60,44,42,62,52,39,24,48,57,1,43,25,54,62,53,25,45,14,4,50,13,20,24,28,1,32,44,63,6};
+    uint8_t spinal_mes[4]={0};
     while (1)
     {
-
-        // log the demoluation result
-        if (mes_counter >= 1000)
-        {
-            ESP_ERROR_CHECK(adc_continuous_stop(handle));
-            // printf("Start to printf Message\n");
-            // printf("Totally dectect %d messages\n", decect_header_counter);
-            bit_counter = -1;
-            mes_start_flg = false;
-            high_count = 0;
-            low_count = 0;
-            memset(mes_buffer, 0, sizeof(mes_buffer));
-            memset(decode_data, 0, sizeof(decode_data));
-            for (int i = 0; i < 100; i++)
-            {
-                printf("%c\n", mes_result[i]);
-            }
-            mes_counter = 0;
-            ESP_ERROR_CHECK(adc_continuous_start(handle));
+        printf("Start to printf Message\n");
+        SpinalDecode(symbols,spinal_mes);
+        for(int i=0;i<4;i++){
+            printf("%c",spinal_mes[i]);
         }
+        printf("\n");
+        printf("Decode Done!\n");
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        // // log the demoluation result
+        // if (mes_counter >= 1000)
+        // {
+        //     ESP_ERROR_CHECK(adc_continuous_stop(handle));
+        //     // printf("Start to printf Message\n");
+        //     // printf("Totally dectect %d messages\n", decect_header_counter);
+        //     bit_counter = -1;
+        //     mes_start_flg = false;
+        //     high_count = 0;
+        //     low_count = 0;
+        //     memset(mes_buffer, 0, sizeof(mes_buffer));
+        //     memset(decode_data, 0, sizeof(decode_data));
+        //     for (int i = 0; i < 100; i++)
+        //     {
+        //         printf("%c\n", mes_result[i]);
+        //     }
+        //     mes_counter = 0;
+        //     ESP_ERROR_CHECK(adc_continuous_start(handle));
+        // }
 
-        ret = adc_continuous_read(handle, result, EXAMPLE_READ_LEN, &ret_num, 0);
+        // ret = adc_continuous_read(handle, result, EXAMPLE_READ_LEN, &ret_num, 0);
 
-        // detect the overflow
-        if (overflow_mark == 1)
-        {
-            printf("overflow\n");
-            bit_counter = -1;
-            mes_start_flg = false;
-            high_count = 0;
-            low_count = 0;
-            memset(mes_buffer, 0, sizeof(mes_buffer));
-            memset(decode_data, 0, sizeof(decode_data));
-            overflow_mark = 0;
-        }
+        // // detect the overflow
+        // if (overflow_mark == 1)
+        // {
+        //     printf("overflow\n");
+        //     bit_counter = -1;
+        //     mes_start_flg = false;
+        //     high_count = 0;
+        //     low_count = 0;
+        //     memset(mes_buffer, 0, sizeof(mes_buffer));
+        //     memset(decode_data, 0, sizeof(decode_data));
+        //     overflow_mark = 0;
+        // }
 
-        // if the adc read is successful
-        if (ret == ESP_OK)
-        {
+        // // if the adc read is successful
+        // if (ret == ESP_OK)
+        // {
 
-            // ESP_LOGI("TASK", "ret is %x, ret_num is %" PRIu32, ret, ret_num);?
-            ESP_ERROR_CHECK(adc_continuous_stop(handle));
+        //     // ESP_LOGI("TASK", "ret is %x, ret_num is %" PRIu32, ret, ret_num);?
+        //     ESP_ERROR_CHECK(adc_continuous_stop(handle));
 
-            int adc_inverse = 0;
-            int tmp_adc[2] = {0};
-            for (int i = 0; i < ret_num; i += SOC_ADC_DIGI_RESULT_BYTES)
-            {
-                adc_digi_output_data_t *p = (void *)&result[i];
-                if (check_valid_data(p))
-                {
-                    tmp_adc[adc_inverse] = p->type1.data;
-                    adc_inverse++;
-                    if (adc_inverse == 2)
-                    {
-                        for (int tmpX = 1; tmpX >= 0; tmpX--)
-                        {
-                            tmp_vlt = tmp_adc[tmpX];
-                            printf("%d\n\r", tmp_vlt);
-                            // demodulation(tmp_vlt);
-                        }
-                        adc_inverse = 0;
-                    }
-                }
-                else if (ret == ESP_ERR_TIMEOUT)
-                {
-                    // We try to read `EXAMPLE_READ_LEN` until API returns timeout, which means there's no available data
-                    break;
-                }
-            }
-            ESP_ERROR_CHECK(adc_continuous_start(handle));
-        }
+        //     int adc_inverse = 0;
+        //     int tmp_adc[2] = {0};
+        //     for (int i = 0; i < ret_num; i += SOC_ADC_DIGI_RESULT_BYTES)
+        //     {
+        //         adc_digi_output_data_t *p = (void *)&result[i];
+        //         if (check_valid_data(p))
+        //         {
+        //             tmp_adc[adc_inverse] = p->type1.data;
+        //             adc_inverse++;
+        //             if (adc_inverse == 2)
+        //             {
+        //                 for (int tmpX = 1; tmpX >= 0; tmpX--)
+        //                 {
+        //                     tmp_vlt = tmp_adc[tmpX];
+        //                     printf("%d\n\r", tmp_vlt);
+        //                     // demodulation(tmp_vlt);
+        //                 }
+        //                 adc_inverse = 0;
+        //             }
+        //         }
+        //         else if (ret == ESP_ERR_TIMEOUT)
+        //         {
+        //             // We try to read `EXAMPLE_READ_LEN` until API returns timeout, which means there's no available data
+        //             break;
+        //         }
+        //     }
+        //     ESP_ERROR_CHECK(adc_continuous_start(handle));
+        // }
     }
 }

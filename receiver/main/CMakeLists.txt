@@ -5,4 +5,7 @@ idf_component_register(SRCS  "main.c"
                         "./user_drivers/motor.c"
                         "./user_drivers/servo.c"
                         "./user_drivers/mypid.c"
+                        "./user_drivers/Lookup3Hash.c"
+                        "./user_drivers/RNG.c"
+                        "./user_drivers/decoder.c"
                     INCLUDE_DIRS ".")
