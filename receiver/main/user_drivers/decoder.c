@@ -86,6 +86,8 @@ bool collect_data(uint8_t *data, int data_num, uint16_t* collected_raw_data, uin
     }
     if(collected_over_mark)
     {
+        
+        
         collected_num = 0;
         return true;
     }
@@ -94,9 +96,8 @@ bool collect_data(uint8_t *data, int data_num, uint16_t* collected_raw_data, uin
 
 void raw_data_avg_caculate(uint16_t *raw_data, int data_num, uint16_t *result_data, uint16_t *result_data_num)
 {
-    uint8_t per_points_num = 144;  // 整个周期的长度
+    uint8_t per_points_num = PERIOD;  // 整个周期的长度
     uint8_t half_per_points_num = per_points_num /2;
-    uint8_t period = per_points_num/2 + 1;
     //half_win_left -> half_period_window_left  
     uint16_t half_win_left = 0, half_win_right = 0;
     uint64_t half_per_win_sum = 0;
@@ -113,7 +114,7 @@ void raw_data_avg_caculate(uint16_t *raw_data, int data_num, uint16_t *result_da
         {
             half_per_win_sum += raw_data[half_win_right] - raw_data[half_win_left];
             result_data[avg_count++] = half_per_win_sum/half_per_points_num;
-            // printf("average:%d\n" ,result_data[avg_count-1]);
+            printf("average:%d\n" ,result_data[avg_count-1]);
         }
 
         if(i < half_per_points_num)
@@ -131,7 +132,7 @@ void raw_data_avg_caculate(uint16_t *raw_data, int data_num, uint16_t *result_da
 
 void decode(uint16_t *raw_data, int data_num, uint8_t* decode_data, uint16_t* decode_data_num)
 {
-    uint8_t per_points_num = 144;  // 实际使用的周期长度是164, 这里写法是为了和VOFA波形对应
+    uint8_t per_points_num = PERIOD;  // 实际使用的周期长度是164, 这里写法是为了和VOFA波形对应
     uint8_t half_per_points_num = per_points_num /2;
     uint8_t period = per_points_num/2 + 1;
     //half_win_left -> half_period_window_left  
@@ -144,7 +145,6 @@ void decode(uint16_t *raw_data, int data_num, uint8_t* decode_data, uint16_t* de
     static uint16_t avg_data[5000];
     uint16_t avg_data_num = 0;
     raw_data_avg_caculate(raw_data, data_num, avg_data, &avg_data_num);
-
     int i = 0;
     while(i < avg_data_num)
     {
@@ -162,14 +162,15 @@ void decode(uint16_t *raw_data, int data_num, uint8_t* decode_data, uint16_t* de
                     trend = -1;
                 else
                     trend = 1;
-                while(temp != goal_value)
-                {
-                    i = i + trend;
-                    //edge condition
-                    if(i >= avg_data_num)
-                        break; 
-                    temp = avg_data[i];
-                }
+                // while(temp != goal_value)
+                // {
+                //     i = i + trend;
+                //     //edge condition
+                //     // printf("i value:%d\n", i);
+                //     if(i >= avg_data_num || i < 0)
+                //         break; 
+                //     temp = avg_data[i];
+                // }
             }
             decode_data[decode_data_cnt++] = decode_half_per(temp);
             // printf("mes:%d\n", decode_data[decode_data_cnt - 1]);
@@ -191,6 +192,7 @@ void decode(uint16_t *raw_data, int data_num, uint8_t* decode_data, uint16_t* de
         {
             i++;
         }
+        // printf("i value:%d\n", i);
         if(i > avg_data_num)
             break;
     }

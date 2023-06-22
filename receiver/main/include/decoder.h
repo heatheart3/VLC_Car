@@ -4,6 +4,7 @@
 #include "./include/myadc.h"
 #include "esp_log.h"
 #include <string.h>
+#define PERIOD 116
 
 
 void decoder(uint8_t *data, int data_num, uint8_t* decode_data,  uint16_t* decode_data_num);

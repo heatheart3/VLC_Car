@@ -79,17 +79,17 @@ void app_main(void)
         {
             ESP_ERROR_CHECK(adc_continuous_stop(conti_adc_handle));
 
-            // for(uint16_t i = 0; i < (sizeof(collected_raw_data)/sizeof(uint16_t)); i++)
-            // {
-            //     printf("value:%d\n", collected_raw_data[i]);
-            // }
-            printf("value:-2\n");
-            decode(collected_raw_data, sizeof(collected_raw_data)/sizeof(uint16_t), decode_data_result, &mes_num);
-            // printf("%d\n", mes_num);
-            for(int i = 0; i < mes_num; i++)
+            for(uint16_t i = 0; i < (sizeof(collected_raw_data)/sizeof(uint16_t)); i++)
             {
-                printf("decoded data:%d\n", decode_data_result[i]);
+                printf("value:%d\n", collected_raw_data[i]);
             }
+            printf("value:-4000\n");
+            // decode(collected_raw_data, sizeof(collected_raw_data)/sizeof(uint16_t), decode_data_result, &mes_num);
+            // // printf("%d\n", mes_num);
+            // for(int i = 0; i < mes_num; i++)
+            // {
+            //     printf("decoded data:%d\n", decode_data_result[i]);
+            // }
             ESP_ERROR_CHECK(adc_continuous_start(conti_adc_handle));
         }
 
