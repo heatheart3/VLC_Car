@@ -23,6 +23,9 @@ typedef struct
  */
 void SpinalDecode(const uint8_t * symbols, uint8_t * decoded_message);
 
+void decode_OOK(const uint8_t *OOK, uint8_t *symbols);
+
+void network_decode(uint8_t * NC, uint8_t* symbols);
 
 
 #endif

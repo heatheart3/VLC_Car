@@ -3,6 +3,7 @@
 #include<stdio.h>
 #include "./include/decoder.h"
 
+
 static  Wavefront self_wavefront[WAVEFRONT_MAX]={0};
 static int wave_front_length=1;
 static int node_depth=0;
@@ -18,7 +19,7 @@ int min_subtree_nodes(Wavefront* subtree)
     return ret;
 }
 
-void sort_subtrees(Wavefront subtrees[SUBTREES_MAX][WAVEFRONT_MAX],int l, int r)
+void sort_subtrees(Wavefront**subtrees,int l, int r)
 {
     if(l>=r) return;
 
@@ -31,9 +32,9 @@ void sort_subtrees(Wavefront subtrees[SUBTREES_MAX][WAVEFRONT_MAX],int l, int r)
         if(i<j)
         {
             Wavefront tmp[1<<K]={0};
-            memcpy(&tmp,&subtrees[i],sizeof(Wavefront)*(1<<K));
-            memcpy(&subtrees[i],&subtrees[j],sizeof(Wavefront)*(1<<K));
-            memcpy(&subtrees[j],&tmp,sizeof(Wavefront)*(1<<K));
+            memcpy(&tmp,subtrees[i],sizeof(Wavefront)*(1<<K));
+            memcpy(subtrees[i],subtrees[j],sizeof(Wavefront)*(1<<K));
+            memcpy(subtrees[j],&tmp,sizeof(Wavefront)*(1<<K));
         }
     }
     sort_subtrees(subtrees,l,j);
@@ -41,9 +42,14 @@ void sort_subtrees(Wavefront subtrees[SUBTREES_MAX][WAVEFRONT_MAX],int l, int r)
 }
 
  void prune_wavefront() {
-    // printf("Start prune\n");
      const int num_subtree_nodes = (1 << (K * (D - 1)));
-     Wavefront subtrees[SUBTREES_MAX][WAVEFRONT_MAX] = {0};
+//     Wavefront subtrees[SUBTREES_MAX][WAVEFRONT_MAX] = {0};
+     Wavefront** subtrees= malloc(sizeof(Wavefront*)*SUBTREES_MAX);
+     for(int i=0;i<SUBTREES_MAX;i++)
+     {
+            subtrees[i]=malloc(sizeof(Wavefront)*num_subtree_nodes);
+            memset(subtrees[i],0,sizeof(Wavefront)*num_subtree_nodes);
+     }
      int num_subtrees = 0;
      while (wave_front_length > 0) {
          memcpy(subtrees[num_subtrees], &self_wavefront[num_subtrees*num_subtree_nodes], num_subtree_nodes * sizeof(Wavefront));
@@ -58,15 +64,20 @@ void sort_subtrees(Wavefront subtrees[SUBTREES_MAX][WAVEFRONT_MAX],int l, int r)
                 num_subtree_nodes * sizeof(Wavefront));
          wave_front_length += num_subtree_nodes;
      }
-        // printf("End prune\n");
+     for(int i=0;i<SUBTREES_MAX;i++)
+     {
+         free(subtrees[i]);
+     }
+     free(subtrees);
 }
 
 
 void advance(const char* symbols)
 {
-    Wavefront new_wavefront[WAVEFRONT_MAX]={0};
+//    Wavefront new_wavefront[WAVEFRONT_MAX]={0};
+    Wavefront* new_wavefront = malloc(sizeof(Wavefront)*WAVEFRONT_MAX);
+    memset(new_wavefront,0,sizeof(Wavefront)*WAVEFRONT_MAX);
     int tmp_wave_front_length=0;
-    // printf("Start advance\n");
     for(int i=0;i<wave_front_length;i++)
     {
         for(int edge=0;edge<(1<<K);edge++)
@@ -92,11 +103,10 @@ void advance(const char* symbols)
             tmp_wave_front_length++;
         }
     }
-    // printf("End advance\n");
     memcpy(self_wavefront,new_wavefront,tmp_wave_front_length*sizeof(Wavefront));
     wave_front_length=tmp_wave_front_length;
     node_depth++;
-    // printf("memcpy done\n");
+    free(new_wavefront);
     prune_wavefront();
 
 }
@@ -145,12 +155,35 @@ void SpinalDecode(const uint8_t *symbols, uint8_t *decoded_message)
         for(int j=0;j<PASS;j++)
         {
             tmp4advance[j]=symbols[i+j*spine_length];
-            // printf("%d",tmp4advance[j]);
         }
-        // printf("\n");
         tmp4advance[PASS]='\0';
         advance(tmp4advance);
     }
 
     get_most_likely(decoded_message);
+}
+
+void decode_OOK(const uint8_t *OOK, uint8_t *symbols)
+{
+    int index=1;
+    for(int i=0;i<PASS_LENGTH;i++)
+    {
+        symbols[i]=0;
+        for(int j=0;j<C;j++)
+        {
+            symbols[i]|=OOK[index];
+            index+=2;
+            symbols[i]<<=1;
+        }
+        symbols[i]>>=1;
+    }
+}
+
+void network_decode(uint8_t * NC, uint8_t* symbols)
+{
+    for(int i=0;i<PASS_LENGTH;i++)
+    {
+        NC[i]=NC[i]^symbols[i];
+    }
+
 }

@@ -1,5 +1,4 @@
 #include "./include/mytimer.h"
-#include "./include/mypid.h"
 
 bool  timer_on_alarm_cb()
 {

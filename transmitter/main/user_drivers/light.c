@@ -1,5 +1,6 @@
 #include "./include/light.h"
 #include  "./include/mytimer.h"
+#include "./include/constant.h"
 
 void light_pwm_config()
 {
@@ -74,4 +75,44 @@ void transmit_ascii(const char* data,int GPIO_OUTPUT_LIGHT)
     gpio_set_level(GPIO_OUTPUT_LIGHT,0);
     udelay(TRANSMIT_PERIOD);
 
+}
+
+void manchester_OOK(uint8_t* symbols,const int GPIO_OUTPUT_LIGHT)
+{
+    volatile char bit;
+
+    //1. preamble: 011110
+    transmit_ook(MES_HEADER,GPIO_RIGHT_LIGHT);
+
+    //2.manchester encoding then OOK modulation
+    for(int i=0;i<PASS_LENGTH;i++)
+    {
+        for(int j=C-1;j>=0;j--)
+        {
+            bit = (symbols[i]>>j)&0x01;
+            
+
+            //1->01
+            if(bit == 1)
+            {
+                gpio_set_level(GPIO_OUTPUT_LIGHT,0);
+                udelay(TRANSMIT_PERIOD);
+                gpio_set_level(GPIO_OUTPUT_LIGHT,1);
+                udelay(TRANSMIT_PERIOD);
+            }
+
+            //0->10
+            else
+            {
+                gpio_set_level(GPIO_OUTPUT_LIGHT,1);
+                udelay(TRANSMIT_PERIOD);
+                gpio_set_level(GPIO_OUTPUT_LIGHT,0);
+                udelay(TRANSMIT_PERIOD);
+            }
+        }
+    }
+    //3. postamble: 0
+    gpio_set_level(GPIO_OUTPUT_LIGHT,0);
+    udelay(TRANSMIT_PERIOD);
+    free(symbols);
 }
