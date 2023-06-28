@@ -43,6 +43,17 @@ static uint8_t decode_data[4] = {0};
 
 static adc_channel_t channel[1] = {ADC_CHANNEL_7}; // gpio35
 
+
+static uint64_t mes_start_time=0;
+static uint64_t demodulation_time =0;
+static uint64_t mes_end_time=0;
+static uint64_t deOOK_start_time=0;
+static uint64_t deOOK_end_time=0;
+static uint64_t despinal_start_time=0;
+static uint64_t despinal_end_time=0;
+static uint64_t denetwork_start_time=0;
+static uint64_t denetwork_end_time=0;
+static gptimer_handle_t gptimer =NULL;
 void demodulation(const int tmp_vlt)
 {
     if (!mes_start_flg)
@@ -60,6 +71,7 @@ void demodulation(const int tmp_vlt)
                 // low_count = 0;
                 bit_counter = -1;
                 // printf("mes start!\n");
+                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &mes_start_time));
             }
             else
             {
@@ -152,15 +164,31 @@ void demodulation(const int tmp_vlt)
             // Codes about control car are written below
             if (bit_counter >= VALID_MES_LEN)
             {
+                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &demodulation_time));
                 // Decode Message
+                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &deOOK_start_time));
                 decode_OOK(mes_buffer, symbolsA);
+                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &deOOK_end_time));
+
+                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &denetwork_start_time));
                 network_decode(symbolsA, symbolsB);
+                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &denetwork_end_time));
+
+                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &despinal_start_time));
                 SpinalDecode(symbolsA, decode_data);
+                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &despinal_end_time));
+
+                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &mes_end_time));
                 for (int i = 0; i < 4; i++)
                 {
                     printf("%c", decode_data[i]);
                 }
                 printf("\n");
+                printf("demodulation time: %llu\n", demodulation_time - mes_start_time);
+                printf("deOOK time: %llu\n", deOOK_end_time - deOOK_start_time);
+                printf("denetwork time: %llu\n", denetwork_end_time - denetwork_start_time);
+                printf("despinal time: %llu\n", despinal_end_time - despinal_start_time);
+                printf("mes time: %llu\n", mes_end_time - mes_start_time);
                 mes_start_flg = false;
                 bit_counter = -1;
                 memset(mes_buffer, 0, sizeof(mes_buffer));
@@ -250,6 +278,14 @@ void app_main(void)
     ESP_ERROR_CHECK(adc_continuous_register_event_callbacks(handle, &adc1_handle, NULL));
     ESP_ERROR_CHECK(adc_continuous_start(handle));
 
+    gptimer_config_t gptimer_config={
+        .clk_src=GPTIMER_CLK_SRC_DEFAULT,
+        .direction=GPTIMER_COUNT_UP,
+        .resolution_hz=1*1000*1000,
+    };
+    ESP_ERROR_CHECK(gptimer_new_timer(&gptimer_config,&gptimer));
+    ESP_ERROR_CHECK(gptimer_enable(gptimer));
+    ESP_ERROR_CHECK(gptimer_start(gptimer));
     while (1)
     {
 

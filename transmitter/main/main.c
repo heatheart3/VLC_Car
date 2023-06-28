@@ -116,16 +116,17 @@ void test_time_consumption_01()
 void test_allinone()
 {
     char *mesA = "abcd";
-    char *mesB = "4321";
+    char *mesB = "XXUU";
     while (1)
     {
+        printf("Transmitting message B: %s\n", mesB);
         uint8_t *symbols = SpinalEncode(mesA);
         uint8_t *test_symbols = SpinalEncode(mesB);
         uint8_t *network_code = network_coding(symbols, test_symbols);
 
         manchester_OOK(network_code, GPIO_RIGHT_LIGHT);
 
-        for (int i = 10; i < 0; i++)
+        for (int i = 0; i < 10000; i++)
         {
             gpio_set_level(GPIO_RIGHT_LIGHT, 1);
             udelay(TRANSMIT_PERIOD);
@@ -142,6 +143,10 @@ void app_main(void)
     gpio_set_level(GPIO_RIGHT_LIGHT, 1);
     while (1)
     {
-        test_allinone();
+        // test_allinone();
+        gpio_set_level(GPIO_RIGHT_LIGHT,1);
+        udelay(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT,0);
+        udelay(TRANSMIT_PERIOD);
     }
 }
