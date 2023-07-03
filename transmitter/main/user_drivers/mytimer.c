@@ -14,7 +14,7 @@ void my_timer_init(gptimer_handle_t *out_gptimer)
     gptimer_config_t timer_config = {
         .clk_src = GPTIMER_CLK_SRC_DEFAULT,
         .direction = GPTIMER_COUNT_UP,
-        .resolution_hz = 10 * 1000 * 1000, // 10MHz
+        .resolution_hz = 1 * 1000 * 1000, // 1MHz
     };
     ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer));
 
@@ -29,10 +29,8 @@ void my_timer_init(gptimer_handle_t *out_gptimer)
     };
 
     ESP_ERROR_CHECK(gptimer_register_event_callbacks(gptimer, &cbs, NULL));
-
+    ESP_ERROR_CHECK(gptimer_enable(gptimer));
     *out_gptimer = gptimer;
-
-    ESP_ERROR_CHECK(gptimer_enable(*out_gptimer));
 }
 
 void my_delay(gptimer_handle_t *gptimer)
@@ -60,6 +58,6 @@ void udelay(int us)
 {
     while(us--)
     {
-        delay_clock(160);
+        delay_clock(16);
     }
 }

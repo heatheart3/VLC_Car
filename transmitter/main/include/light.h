@@ -19,7 +19,7 @@
 
 //CLOCK=160
 //100=5KHz
-#define TRANSMIT_PERIOD 100 //US
+#define TRANSMIT_PERIOD 50 //US
 
 
 /**

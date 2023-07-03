@@ -3,6 +3,7 @@
 bool  timer_on_alarm_cb()
 {
     
+    timer_isr_flag=true;
     return true;
 }
 
@@ -29,7 +30,7 @@ void my_timer_init(gptimer_handle_t *out_gptimer)
     };
 
     ESP_ERROR_CHECK(gptimer_register_event_callbacks(gptimer, &cbs, NULL));
-
+    ESP_ERROR_CHECK(gptimer_enable(gptimer));
     *out_gptimer = gptimer;
 }
 
@@ -39,7 +40,8 @@ void my_delay(gptimer_handle_t *gptimer)
     ESP_ERROR_CHECK(gptimer_start(*gptimer));
 
     while(!timer_isr_flag)
-    {};
+    {
+    };
     ESP_ERROR_CHECK(gptimer_stop(*gptimer));
     timer_isr_flag=false;
 }
@@ -58,6 +60,6 @@ void udelay(int us)
 {
     while(us--)
     {
-        delay_clock(160);
+        delay_clock(16);
     }
 }

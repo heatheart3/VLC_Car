@@ -15,6 +15,11 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+#include "driver/rmt_rx.h"
+
+static const char *TAG = "example";
+
+#define PD_GPIO_NUM 35
 
 #define VLT_HIGH 4095
 #define VLT_LOW 0
@@ -41,268 +46,70 @@ static uint8_t symbolsA[PASS_LENGTH] = {0};
 static uint8_t symbolsB[] = {34, 12, 13, 59, 17, 18, 59, 26, 45, 13, 46, 48, 24, 63, 11, 34, 54, 42, 55, 35, 0, 48, 4, 36, 47, 21, 59, 54, 24, 58, 4, 58, 44};
 static uint8_t decode_data[4] = {0};
 
-static adc_channel_t channel[1] = {ADC_CHANNEL_7}; // gpio35
+// static adc_channel_t channel[1] = {ADC_CHANNEL_7}; // gpio35
 
 
-static uint64_t mes_start_time=0;
-static uint64_t demodulation_time =0;
-static uint64_t mes_end_time=0;
-static uint64_t deOOK_start_time=0;
-static uint64_t deOOK_end_time=0;
-static uint64_t despinal_start_time=0;
-static uint64_t despinal_end_time=0;
-static uint64_t denetwork_start_time=0;
-static uint64_t denetwork_end_time=0;
-static gptimer_handle_t gptimer =NULL;
-void demodulation(const int tmp_vlt)
+static void example_parse_nec_frame(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num)
 {
-    if (!mes_start_flg)
-    {
-        if (tmp_vlt >= VLT_HIGH)
-        {
-            high_count++;
-        }
-        else if (tmp_vlt <= VLT_LOW)
-        {
-            if (high_count >= HEADER_THRES)
-            {
-                mes_start_flg = true;
-                high_count = 0;
-                // low_count = 0;
-                bit_counter = -1;
-                // printf("mes start!\n");
-                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &mes_start_time));
-            }
-            else
-            {
-                high_count = 0;
-                low_count = 0;
-            }
-        }
+    printf("NEC frame start---\r\n");
+    for (size_t i = 0; i < symbol_num; i++) {
+        printf("{%d:%d},{%d:%d}\r\n", rmt_nec_symbols[i].level0, rmt_nec_symbols[i].duration0,
+               rmt_nec_symbols[i].level1, rmt_nec_symbols[i].duration1);
     }
-    else
-    {
-        if (tmp_vlt >= VLT_HIGH)
-        {
-            high_count++;
-        }
-        else if (tmp_vlt <= VLT_LOW)
-        {
-            low_count++;
-        }
-
-        if (high_count != 0 && low_count != 0)
-        {
-            // dicard the lsb of header [011"0"]
-            if (bit_counter == -1)
-            {
-
-                bit_counter++;
-
-                if (low_count >= DOUBLE_LOW_THRES)
-                {
-                    mes_buffer[bit_counter] = 0;
-                    bit_counter++;
-                }
-                low_count = 0;
-            }
-            else if (bit_counter < VALID_MES_LEN)
-            {
-                if (high_count > low_count)
-                {
-                    if (high_count >= DOUBLE_HIGH_THRES)
-                    {
-                        mes_buffer[bit_counter] = 1;
-                        bit_counter++;
-                        mes_buffer[bit_counter] = 1;
-                        bit_counter++;
-                        // printf("11");
-                        high_count = 0;
-                    }
-                    else if (high_count >= SINGLE_HIGH_THRES && high_count < DOUBLE_HIGH_THRES)
-                    {
-                        mes_buffer[bit_counter] = 1;
-                        bit_counter++;
-                        // printf("1");
-                        high_count = 0;
-                    }
-                    else
-                    {
-                        mes_start_flg = false;
-                        high_count = 0;
-                        low_count = 0;
-                    }
-                }
-                else
-                {
-                    if (low_count >= DOUBLE_LOW_THRES)
-                    {
-                        mes_buffer[bit_counter] = 0;
-                        bit_counter++;
-                        mes_buffer[bit_counter] = 0;
-                        bit_counter++;
-                        // printf("00");
-                        low_count = 0;
-                    }
-                    else if (low_count >= SINGLE_LOW_THRES && low_count < DOUBLE_LOW_THRES)
-                    {
-                        mes_buffer[bit_counter] = 0;
-                        bit_counter++;
-                        // printf("0");
-                        low_count = 0;
-                    }
-                    else
-                    {
-                        mes_start_flg = false;
-                        low_count = 0;
-                        high_count = 0;
-                    }
-                }
-            }
-
-            // OOK Demodulation Done
-            // Codes about control car are written below
-            if (bit_counter >= VALID_MES_LEN)
-            {
-                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &demodulation_time));
-                // Decode Message
-                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &deOOK_start_time));
-                decode_OOK(mes_buffer, symbolsA);
-                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &deOOK_end_time));
-
-                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &denetwork_start_time));
-                network_decode(symbolsA, symbolsB);
-                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &denetwork_end_time));
-
-                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &despinal_start_time));
-                SpinalDecode(symbolsA, decode_data);
-                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &despinal_end_time));
-
-                ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &mes_end_time));
-                for (int i = 0; i < 4; i++)
-                {
-                    printf("%c", decode_data[i]);
-                }
-                printf("\n");
-                printf("demodulation time: %llu\n", demodulation_time - mes_start_time);
-                printf("deOOK time: %llu\n", deOOK_end_time - deOOK_start_time);
-                printf("denetwork time: %llu\n", denetwork_end_time - denetwork_start_time);
-                printf("despinal time: %llu\n", despinal_end_time - despinal_start_time);
-                printf("mes time: %llu\n", mes_end_time - mes_start_time);
-                mes_start_flg = false;
-                bit_counter = -1;
-                memset(mes_buffer, 0, sizeof(mes_buffer));
-            }
-        }
-    }
+    printf("---NEC frame end: ");
 }
 
-void print_VLT(esp_err_t ret, uint32_t ret_num, uint8_t *result, adc_continuous_handle_t handle)
+static bool example_rmt_rx_done_callback(rmt_channel_handle_t channel, const rmt_rx_done_event_data_t *edata, void *user_data)
 {
-    // if the adc read is successful
-    if (ret == ESP_OK)
-    {
-        ESP_ERROR_CHECK(adc_continuous_stop(handle));
-        int adc_inverse = 0;
-        int tmp_adc[2] = {0};
-        for (int i = 0; i < ret_num; i += SOC_ADC_DIGI_RESULT_BYTES)
-        {
-            adc_digi_output_data_t *p = (void *)&result[i];
-            if (check_valid_data(p))
-            {
-                tmp_adc[adc_inverse] = p->type1.data;
-                adc_inverse++;
-                if (adc_inverse == 2)
-                {
-                    for (int tmpX = 1; tmpX >= 0; tmpX--)
-                    {
-                        tmp_vlt = tmp_adc[tmpX];
-                        printf("%d\n\r", tmp_vlt);
-                    }
-                    adc_inverse = 0;
-                }
-            }
-        }
-        ESP_ERROR_CHECK(adc_continuous_start(handle));
-    }
-    else if (ret == ESP_ERR_TIMEOUT)
-    {
-        printf("ADC capture timeout\n");
-    }
-}
-
-void recover_message(esp_err_t ret, uint32_t ret_num, uint8_t *result, adc_continuous_handle_t handle)
-{
-    // if the adc read is successful
-    if (ret == ESP_OK)
-    {
-        int adc_inverse = 0;
-        int tmp_adc[2] = {0};
-        for (int i = 0; i < ret_num; i += SOC_ADC_DIGI_RESULT_BYTES)
-        {
-            adc_digi_output_data_t *p = (void *)&result[i];
-            if (check_valid_data(p))
-            {
-                tmp_adc[adc_inverse] = p->type1.data;
-                adc_inverse++;
-                if (adc_inverse == 2)
-                {
-                    for (int tmpX = 1; tmpX >= 0; tmpX--)
-                    {
-                        tmp_vlt = tmp_adc[tmpX];
-                        demodulation(tmp_vlt);
-                    }
-                    adc_inverse = 0;
-                }
-            }
-        }
-    }
-    // else if (ret == ESP_ERR_TIMEOUT)
-    // {
-    //     printf("ADC capture timeout\n");
-    // }
+    BaseType_t high_task_wakeup = pdFALSE;
+    QueueHandle_t receive_queue = (QueueHandle_t)user_data;
+    // send the received RMT symbols to the parser task
+    xQueueSendFromISR(receive_queue, edata, &high_task_wakeup);
+    return high_task_wakeup == pdTRUE;
 }
 
 void app_main(void)
 {
-
-    esp_err_t ret;
-    uint32_t ret_num = 0;
-    uint8_t result[EXAMPLE_READ_LEN] = {0};
-    memset(result, 0xcc, EXAMPLE_READ_LEN);
-
-    adc_continuous_handle_t handle = NULL;
-    adc_continuous_evt_cbs_t adc1_handle;
-    adc1_handle.on_pool_ovf = detect_overflow;
-    continuous_adc_init(channel, sizeof(channel) / sizeof(adc_channel_t), &handle);
-    ESP_ERROR_CHECK(adc_continuous_register_event_callbacks(handle, &adc1_handle, NULL));
-    ESP_ERROR_CHECK(adc_continuous_start(handle));
-
-    gptimer_config_t gptimer_config={
-        .clk_src=GPTIMER_CLK_SRC_DEFAULT,
-        .direction=GPTIMER_COUNT_UP,
-        .resolution_hz=1*1000*1000,
+    ESP_LOGI(TAG, "create RMT RX channel");
+    rmt_rx_channel_config_t rx_channel_cfg = {
+        .clk_src = RMT_CLK_SRC_DEFAULT,
+        .resolution_hz =1000000,
+        .mem_block_symbols = 64, // amount of RMT symbols that the channel can store at a time
+        .gpio_num = PD_GPIO_NUM,
     };
-    ESP_ERROR_CHECK(gptimer_new_timer(&gptimer_config,&gptimer));
-    ESP_ERROR_CHECK(gptimer_enable(gptimer));
-    ESP_ERROR_CHECK(gptimer_start(gptimer));
-    while (1)
+    rmt_channel_handle_t rx_channel = NULL;
+    ESP_ERROR_CHECK(rmt_new_rx_channel(&rx_channel_cfg, &rx_channel));
+
+ ESP_LOGI(TAG, "register RX done callback");
+  QueueHandle_t receive_queue = xQueueCreate(1, sizeof(rmt_rx_done_event_data_t));
+    assert(receive_queue);
+    rmt_rx_event_callbacks_t cbs = {
+        .on_recv_done = example_rmt_rx_done_callback,
+    };
+    ESP_ERROR_CHECK(rmt_rx_register_event_callbacks(rx_channel,&cbs,receive_queue));
+    rmt_receive_config_t receive_config={
+        .signal_range_min_ns=10,
+        .signal_range_max_ns=2000
+    };
+
+    ESP_LOGI(TAG, "enable RMT TX and RX channels");
+    ESP_ERROR_CHECK(rmt_enable(rx_channel));
+    rmt_symbol_word_t raw_symbols[64];
+    rmt_rx_done_event_data_t rx_data;
+
+    ESP_ERROR_CHECK(rmt_receive(rx_channel,raw_symbols,sizeof(raw_symbols),&receive_config));
+    while(1)
     {
-
-        ret = adc_continuous_read(handle, result, EXAMPLE_READ_LEN, &ret_num, 0);
-
-        // detect the overflow
-        if (overflow_mark == 1)
-        {
-            printf("overflow\n");
-            bit_counter = -1;
-            mes_start_flg = false;
-            high_count = 0;
-            low_count = 0;
-            memset(mes_buffer, 0, sizeof(mes_buffer));
-            overflow_mark = 0;
+    // wait for RX done signal
+        if (xQueueReceive(receive_queue, &rx_data, pdMS_TO_TICKS(1000)) == pdPASS) {
+            // parse the receive symbols and print the result
+            example_parse_nec_frame(rx_data.received_symbols, rx_data.num_symbols);
+            // start receive again
+            ESP_ERROR_CHECK(rmt_receive(rx_channel, raw_symbols, sizeof(raw_symbols), &receive_config));
         }
-
-        recover_message(ret, ret_num, result, handle);
+        else
+        {
+            printf("waiting for receive!");
+        }
     }
 }

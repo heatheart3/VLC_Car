@@ -3,7 +3,7 @@
 
 #include "driver/gptimer.h"
 
-#define DELAY_TIME 1000
+#define DELAY_TIME 200
 
 static bool timer_isr_flag = false;
 

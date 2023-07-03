@@ -19,7 +19,6 @@
 #include "freertos/semphr.h"
 #include <sys/time.h>
 
-
 // transmit "0!AaA]&" in a loop
 void loop_transmit_ascii()
 {
@@ -71,7 +70,6 @@ void loop_transmit_ascii()
         udelay(TRANSMIT_PERIOD);
     }
 }
-
 
 // test udelay() and  gpio_set_level() time consumption
 void test_time_consumption_01()
@@ -141,12 +139,19 @@ void app_main(void)
 
     light_ook_config(GPIO_RIGHT_LIGHT);
     gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+
+    gptimer_handle_t timer = NULL;
+    my_timer_init(&timer);
     while (1)
     {
         // test_allinone();
-        gpio_set_level(GPIO_RIGHT_LIGHT,1);
-        udelay(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT,0);
-        udelay(TRANSMIT_PERIOD);
+
+        for (int i = 0; i < 100; i++)
+        {
+            gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+            udelay(TRANSMIT_PERIOD);
+            gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+            udelay(TRANSMIT_PERIOD);
+        }
     }
 }
