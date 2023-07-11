@@ -17,6 +17,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+#include "esp32/rom/ets_sys.h"
 #include <sys/time.h>
 
 // transmit "0!AaA]&" in a loop
@@ -146,12 +147,18 @@ void app_main(void)
     {
         // test_allinone();
 
-        for (int i = 0; i < 100; i++)
-        {
             gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-            udelay(TRANSMIT_PERIOD);
+            ets_delay_us(5);
             gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-            udelay(TRANSMIT_PERIOD);
-        }
+            ets_delay_us(5);
+
+            gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+            ets_delay_us(5);
+            gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+            ets_delay_us(5);
+            gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+            ets_delay_us(5);
+            gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+            ets_delay_us(5);
     }
 }

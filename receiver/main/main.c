@@ -15,7 +15,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+#include "sys/unistd.h"
+#include "esp32/rom/ets_sys.h"
 #include "driver/rmt_rx.h"
+#include "driver/gpio.h"
 
 static const char *TAG = "example";
 
@@ -49,67 +52,40 @@ static uint8_t decode_data[4] = {0};
 // static adc_channel_t channel[1] = {ADC_CHANNEL_7}; // gpio35
 
 
-static void example_parse_nec_frame(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num)
-{
-    printf("NEC frame start---\r\n");
-    for (size_t i = 0; i < symbol_num; i++) {
-        printf("{%d:%d},{%d:%d}\r\n", rmt_nec_symbols[i].level0, rmt_nec_symbols[i].duration0,
-               rmt_nec_symbols[i].level1, rmt_nec_symbols[i].duration1);
-    }
-    printf("---NEC frame end: ");
-}
-
-static bool example_rmt_rx_done_callback(rmt_channel_handle_t channel, const rmt_rx_done_event_data_t *edata, void *user_data)
-{
-    BaseType_t high_task_wakeup = pdFALSE;
-    QueueHandle_t receive_queue = (QueueHandle_t)user_data;
-    // send the received RMT symbols to the parser task
-    xQueueSendFromISR(receive_queue, edata, &high_task_wakeup);
-    return high_task_wakeup == pdTRUE;
-}
 
 void app_main(void)
 {
-    ESP_LOGI(TAG, "create RMT RX channel");
-    rmt_rx_channel_config_t rx_channel_cfg = {
-        .clk_src = RMT_CLK_SRC_DEFAULT,
-        .resolution_hz =1000000,
-        .mem_block_symbols = 64, // amount of RMT symbols that the channel can store at a time
-        .gpio_num = PD_GPIO_NUM,
-    };
-    rmt_channel_handle_t rx_channel = NULL;
-    ESP_ERROR_CHECK(rmt_new_rx_channel(&rx_channel_cfg, &rx_channel));
+    gpio_config_t io_conf={};
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pin_bit_mask = (1ULL<<35);
+    io_conf.pull_down_en = 0;
+    io_conf.pull_up_en = 0;
+    gpio_config(&io_conf);
 
- ESP_LOGI(TAG, "register RX done callback");
-  QueueHandle_t receive_queue = xQueueCreate(1, sizeof(rmt_rx_done_event_data_t));
-    assert(receive_queue);
-    rmt_rx_event_callbacks_t cbs = {
-        .on_recv_done = example_rmt_rx_done_callback,
-    };
-    ESP_ERROR_CHECK(rmt_rx_register_event_callbacks(rx_channel,&cbs,receive_queue));
-    rmt_receive_config_t receive_config={
-        .signal_range_min_ns=10,
-        .signal_range_max_ns=2000
+    gpio_config_t led_config={
+        .pin_bit_mask = (1<<34),
+        .mode = GPIO_MODE_OUTPUT,
+        .intr_type = GPIO_INTR_DISABLE,
+        .pull_down_en = 0,
+        .pull_up_en=0
     };
 
-    ESP_LOGI(TAG, "enable RMT TX and RX channels");
-    ESP_ERROR_CHECK(rmt_enable(rx_channel));
-    rmt_symbol_word_t raw_symbols[64];
-    rmt_rx_done_event_data_t rx_data;
+    gpio_config(&led_config);
 
-    ESP_ERROR_CHECK(rmt_receive(rx_channel,raw_symbols,sizeof(raw_symbols),&receive_config));
+    static uint8_t result[3000];
     while(1)
     {
-    // wait for RX done signal
-        if (xQueueReceive(receive_queue, &rx_data, pdMS_TO_TICKS(1000)) == pdPASS) {
-            // parse the receive symbols and print the result
-            example_parse_nec_frame(rx_data.received_symbols, rx_data.num_symbols);
-            // start receive again
-            ESP_ERROR_CHECK(rmt_receive(rx_channel, raw_symbols, sizeof(raw_symbols), &receive_config));
-        }
-        else
+        for(int i = 0; i < 3000; i++)
         {
-            printf("waiting for receive!");
+            result[i] = gpio_get_level(35);
+            ets_delay_us(1);
         }
+        for(int i = 0; i < 3000; i++)
+        {
+            printf("%d\n", result[i]);
+        }
+        printf("-4000\n");
+
     }
 }
