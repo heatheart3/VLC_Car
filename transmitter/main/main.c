@@ -17,7 +17,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
-#include "esp32/rom/ets_sys.h"
 #include <sys/time.h>
 
 // transmit "0!AaA]&" in a loop
@@ -141,24 +140,31 @@ void app_main(void)
     light_ook_config(GPIO_RIGHT_LIGHT);
     gpio_set_level(GPIO_RIGHT_LIGHT, 1);
 
-    gptimer_handle_t timer = NULL;
-    my_timer_init(&timer);
     while (1)
     {
         // test_allinone();
 
-            gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-            ets_delay_us(5);
-            gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-            ets_delay_us(5);
+        transmit_ook(MES_HEADER, GPIO_RIGHT_LIGHT);
 
+        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+        ets_delay_us(TRANSMIT_PERIOD);
+        // gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+        // ets_delay_us(TRANSMIT_PERIOD);
+
+        for (int i = 0; i < 100; i++)
+        {
             gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-            ets_delay_us(5);
-            gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-            ets_delay_us(5);
+            ets_delay_us(TRANSMIT_PERIOD);
             gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-            ets_delay_us(5);
-            gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-            ets_delay_us(5);
+            ets_delay_us(TRANSMIT_PERIOD);
+        }
     }
 }

@@ -3,6 +3,7 @@
 
 #include "./driver/ledc.h"
 #include "./driver/gpio.h"
+#include "esp32/rom/ets_sys.h"
 #include <string.h>
 
 #define GPIO_LEFT_LIGHT 26
@@ -19,7 +20,7 @@
 
 //CLOCK=160
 //100=5KHz
-#define TRANSMIT_PERIOD 1 //US
+#define TRANSMIT_PERIOD 20 //US
 
 
 /**
