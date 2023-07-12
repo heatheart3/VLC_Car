@@ -13,7 +13,7 @@
 #define SINGLE_HIGH_THRES 2
 #define SINGLE_LOW_THRES 2
 
-#define OOK_SYMBOLS_LEN 8
+#define OOK_SYMBOLS_LEN 64
 #define MANCHESTER_SYMBOLS_LEN (OOK_SYMBOLS_LEN/2)
 
 void PHY_gpio_config(const int gpio_num);

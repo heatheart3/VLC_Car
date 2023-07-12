@@ -144,28 +144,8 @@ void app_main(void)
     {
         // test_allinone();
 
-        transmit_ook(MES_HEADER, GPIO_RIGHT_LIGHT);
-
-        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-        ets_delay_us(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-        ets_delay_us(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-        ets_delay_us(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-        ets_delay_us(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-        ets_delay_us(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-        ets_delay_us(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-        ets_delay_us(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-        ets_delay_us(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-        ets_delay_us(TRANSMIT_PERIOD);
-        // gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-        // ets_delay_us(TRANSMIT_PERIOD);
+        
+        transmit_ascii("QWER", GPIO_RIGHT_LIGHT);
 
         for (int i = 0; i < 100; i++)
         {
