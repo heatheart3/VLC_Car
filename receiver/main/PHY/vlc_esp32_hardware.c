@@ -28,12 +28,12 @@ void PHY_read_symbols(uint8_t *buffer, uint16_t length, const int PD_GPIO_NUM)
     }
 }
 
-void PHY_demoluate_OOK(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer)
+uint8_t PHY_demoluate_OOK(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer)
 {
     uint8_t mes_start_flag = 0;
     uint8_t high_count = 0;
     uint8_t low_count = 0;
-    int8_t bit_counter = 0;
+    int16_t bit_counter = -1;
     for(int i=*start_index; i<length; i++)
     {
         if (!mes_start_flag)
@@ -94,16 +94,11 @@ void PHY_demoluate_OOK(const uint8_t *buffer, uint16_t *start_index, const uint1
                             bit_counter++;
                             high_count = 0;
                         }
-                        else if (high_count >= SINGLE_HIGH_THRES && high_count < DOUBLE_HIGH_THRES)
+                        else
                         {
                             mes_buffer[bit_counter] = 1;
                             bit_counter++;
                             high_count = 0;
-                        }
-                        else
-                        {
-                            printf("ERROR: Invalid signal duration!\n");
-                            return;
                         }
                     }
                     else
@@ -116,28 +111,30 @@ void PHY_demoluate_OOK(const uint8_t *buffer, uint16_t *start_index, const uint1
                             bit_counter++;
                             low_count = 0;
                         }
-                        else if (low_count >= SINGLE_LOW_THRES && low_count < DOUBLE_LOW_THRES)
+                        else
                         {
                             mes_buffer[bit_counter] = 0;
                             bit_counter++;
                             low_count = 0;
-                        }
-                        else
-                        {
-                            printf("ERROR: Invalid signal duration!\n");
-                            return;
                         }
                     }
                 }
             }
         }
     
-        if (bit_counter == OOK_SYMBOLS_LEN)
+        if (bit_counter >= OOK_SYMBOLS_LEN)
         {
             *start_index = i--;
-            return;
+            // printf("YYY");
+            return mes_start_flag;
         }
     }
+    if(mes_start_flag)
+    {
+        // printf("XXX");
+    }
+    *start_index = length;
+    return mes_start_flag;
 }
 
 void PHY_decode_manchester(const uint8_t *symbols, uint8_t *mes)
@@ -170,3 +167,39 @@ void PHY_decode_manchester(const uint8_t *symbols, uint8_t *mes)
         j += 2;
     }
 }
+
+void inline spinal_get_intermediate_symbols(const uint8_t* symbols, uint8_t* intermediate_symbols)
+{
+    int index=1;
+    for(int i=0;i<PASS_LENGTH;i++)
+    {
+        intermediate_symbols[i]=0;
+        for(int j=0;j<C;j++)
+        {
+            intermediate_symbols[i]|=symbols[index];
+            index++;
+            intermediate_symbols[i]<<=1;
+        }
+        intermediate_symbols[i]>>=1;
+    }
+}
+
+void PHY_decode_spinal(const uint8_t *symbols, uint8_t *mes)
+{
+
+    static uint8_t intermediate_symbols[PASS_LENGTH];
+    for(int i=0;i<OOK_SYMBOLS_LEN;i++)
+    {
+        printf("%d",symbols[i]);
+    }
+    printf("\n");
+    decode_OOK(symbols, intermediate_symbols);
+    for(int i=0;i<PASS_LENGTH;i++)
+    {
+        printf("%d ",intermediate_symbols[i]);
+    }  
+    printf("\n");
+    SpinalDecode(intermediate_symbols, mes);
+}
+
+

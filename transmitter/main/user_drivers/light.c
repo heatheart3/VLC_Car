@@ -92,23 +92,23 @@ void manchester_OOK(uint8_t *symbols, const int GPIO_OUTPUT_LIGHT)
             if (bit == 1)
             {
                 gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
-                udelay(TRANSMIT_PERIOD);
+                ets_delay_us(TRANSMIT_PERIOD);
                 gpio_set_level(GPIO_OUTPUT_LIGHT, 1);
-                udelay(TRANSMIT_PERIOD);
+                ets_delay_us(TRANSMIT_PERIOD);
             }
 
             // 0->10
             else
             {
                 gpio_set_level(GPIO_OUTPUT_LIGHT, 1);
-                udelay(TRANSMIT_PERIOD);
+                ets_delay_us(TRANSMIT_PERIOD);
                 gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
-                udelay(TRANSMIT_PERIOD);
+                ets_delay_us(TRANSMIT_PERIOD);
             }
         }
     }
     // 3. postamble: 0
     gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
-    udelay(TRANSMIT_PERIOD);
+    ets_delay_us(TRANSMIT_PERIOD);
     free(symbols);
 }
