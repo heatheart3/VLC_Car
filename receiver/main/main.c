@@ -24,14 +24,15 @@ void app_main(void)
         // print_PHY_symbols_buffer(symbols_buffer, SYMBOLS_BUFFER_SIZE);
 
 
-        uint8_t mes_buffer[VALID_MES_LEN];
+        uint8_t mes_buffer[OOK_SYMBOLS_LEN];
+        uint8_t manchester_symbols[MANCHESTER_SYMBOLS_LEN];
         for(uint16_t i=0;i<SYMBOLS_BUFFER_SIZE;i++)
         {
             PHY_demoluate_OOK(symbols_buffer, &i, SYMBOLS_BUFFER_SIZE, mes_buffer);
-            i--;
-            for(int j=0;j<VALID_MES_LEN;j++)
+            PHY_decode_manchester(mes_buffer,manchester_symbols);
+            for(int i=0;i<MANCHESTER_SYMBOLS_LEN;i++)
             {
-                printf("%d", mes_buffer[j]);
+                printf("%d",manchester_symbols[i]);
             }
             printf("\n");
         }

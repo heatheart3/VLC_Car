@@ -82,7 +82,7 @@ void PHY_demoluate_OOK(const uint8_t *buffer, uint16_t *start_index, const uint1
                     }
                     low_count = 0;
                 }
-                else if (bit_counter < VALID_MES_LEN)
+                else if (bit_counter < OOK_SYMBOLS_LEN)
                 {
                     if (high_count > low_count)
                     {
@@ -132,12 +132,41 @@ void PHY_demoluate_OOK(const uint8_t *buffer, uint16_t *start_index, const uint1
             }
         }
     
-        if (bit_counter == VALID_MES_LEN)
+        if (bit_counter == OOK_SYMBOLS_LEN)
         {
-            *start_index = i;
+            *start_index = i--;
             return;
         }
     }
 }
 
-// void PHY_decode_Manchester
+void PHY_decode_manchester(const uint8_t *symbols, uint8_t *mes)
+{
+    int j = 0;
+    for (int i = 0; i < MANCHESTER_SYMBOLS_LEN; i++)
+    {
+        if (symbols[j] == 0)
+        {
+            if (symbols[j + 1] == 0)
+            {
+                break;
+            }
+            else
+            {
+                mes[i] = 1;
+            }
+        }
+        else
+        {
+            if (symbols[j + 1] == 1)
+            {
+                break;
+            }
+            else
+            {
+                mes[i] = 0;
+            }
+        }
+        j += 2;
+    }
+}

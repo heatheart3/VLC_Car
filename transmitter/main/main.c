@@ -156,6 +156,14 @@ void app_main(void)
         ets_delay_us(TRANSMIT_PERIOD);
         gpio_set_level(GPIO_RIGHT_LIGHT, 0);
         ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+        ets_delay_us(TRANSMIT_PERIOD);
         // gpio_set_level(GPIO_RIGHT_LIGHT, 0);
         // ets_delay_us(TRANSMIT_PERIOD);
 
