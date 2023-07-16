@@ -30,7 +30,8 @@ void app_main(void)
     {
         
         // void test_square_wave();     
-        test0_transmit_nonencode("1000");
+        // test0_transmit_nonencode("SCU!");
+        test0_transmit_nonencode_ver2("SCU!");
         // test1_transmit_spinal("1000");
     }
 }

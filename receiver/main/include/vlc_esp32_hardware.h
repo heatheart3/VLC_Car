@@ -7,7 +7,7 @@
 #include "esp32/rom/ets_sys.h"
 #include "driver/gpio.h"
 
-
+extern  uint8_t overflow_symbol_counter;
 
 /**
  * @brief Configures a GPIO pin as input

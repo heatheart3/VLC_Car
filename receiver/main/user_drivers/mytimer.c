@@ -2,8 +2,6 @@
 
 bool  timer_on_alarm_cb()
 {
-    
-    timer_isr_flag=true;
     return true;
 }
 
@@ -20,6 +18,8 @@ void my_timer_init(gptimer_handle_t *out_gptimer)
     ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer));
 
     gptimer_alarm_config_t alarm_config = {
+        .reload_count=0,
+        .flags.auto_reload_on_alarm=true,
         .alarm_count = DELAY_TIME, // 1s @resolution is 1MHz
     };
 

@@ -115,7 +115,6 @@ void test_allinone()
     }
 }
 
-
 void test_square_wave()
 {
     gpio_set_level(GPIO_RIGHT_LIGHT, 1);
@@ -124,26 +123,66 @@ void test_square_wave()
     ets_delay_us(TRANSMIT_PERIOD);
 }
 
-void test0_transmit_nonencode(const char* mes)
+void test0_transmit_nonencode(const char *mes)
 {
-    while(1)
+    while (1)
     {
-        printf("1000\n");   
-        transmit_ascii(mes, GPIO_RIGHT_LIGHT);
-        for (int i = 0; i < 1000; i++)
+        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+        ets_delay_us(TRANSMIT_PERIOD);
+        transmit_ascii("AAAA", GPIO_RIGHT_LIGHT);
+
+
+        for (int i = 0; i < 20; i++)
         {
-            gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-            ets_delay_us(TRANSMIT_PERIOD);
-            gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-            ets_delay_us(TRANSMIT_PERIOD);
+            transmit_ascii(mes, GPIO_RIGHT_LIGHT);
+            for (int j = 0; j < 2; j++)
+            {
+                gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+                ets_delay_us(TRANSMIT_PERIOD);
+                gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+                ets_delay_us(TRANSMIT_PERIOD);
+            }
         }
+        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+        ets_delay_us(TRANSMIT_PERIOD);
+        transmit_ascii("EEEE", GPIO_RIGHT_LIGHT);
     }
 }
 
-void test1_transmit_spinal(const char* mes)
+void test0_transmit_nonencode_ver2(const char *mes)
+{
+        while (1)
+    {
+
+            transmit_ascii(mes, GPIO_RIGHT_LIGHT);
+            for (int j = 0; j < 2; j++)
+            {
+                gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+                ets_delay_us(TRANSMIT_PERIOD);
+                gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+                ets_delay_us(TRANSMIT_PERIOD);
+            }
+   
+    }
+}
+
+void test1_transmit_spinal(const char *mes)
 {
     while (1)
-    {        printf("1000\n");   
+    {
+        printf("SCU!\n");
         uint8_t *symbols = SpinalEncode(mes);
 
         manchester_OOK(symbols, GPIO_RIGHT_LIGHT);

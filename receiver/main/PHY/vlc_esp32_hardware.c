@@ -131,7 +131,8 @@ uint8_t PHY_demoluate_OOK(const uint8_t *buffer, uint16_t *start_index, const ui
     }
     if(mes_start_flag)
     {
-        // printf("XXX");
+        overflow_symbol_counter++;
+        return 0;
     }
     *start_index = length;
     return mes_start_flag;
