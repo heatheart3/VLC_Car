@@ -16,6 +16,13 @@ extern gptimer_handle_t gptimer;
 extern int pass_counter;
 extern int head;
 
+
+static uint8_t mes_start_flag = 0;
+static uint8_t high_count = 0;
+static uint8_t low_count = 0;
+static int16_t bit_counter = -1;
+static uint8_t edge_dir = 0;
+
 /**
  * @brief Configures a GPIO pin as input
  */

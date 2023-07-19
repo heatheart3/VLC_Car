@@ -28,9 +28,9 @@ void vtask_transmitter()
         
         // test_square_wave(); 
         // test_10_1100();
-        // test0_transmit_nonencode_ver2("Fo1!");
+        test0_transmit_nonencode_ver2("Fo1!");
         // test1_transmit_spinal("Fo1!");
-        test1_transmit_spinal_ver2("Fo1!");
+        // test1_transmit_spinal_ver2("Fo1!");
         // test2_transmit_allinone();
     }
 }

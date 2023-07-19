@@ -7,7 +7,6 @@ void test_print_PHY_symbols_buffer(uint8_t *buffer, uint32_t length)
     {
         printf("%d\n", buffer[i]);
     }
-    printf("-2\n");
 }
 
 void test_get_ASCII(const uint8_t *symbols, uint8_t *ch)
@@ -67,26 +66,33 @@ void test0_get_packet(uint8_t *symbols_buffer, uint32_t symbols_length)
     }
 }
 
-void test0_get_packet_ver2(uint8_t *symbols_buffer, uint32_t symbols_length)
+uint32_t test0_get_packet_ver2(uint8_t *symbols_buffer, uint32_t symbols_length)
 {
+    uint32_t ret=0;
     for (uint16_t i = 0; i < symbols_length; i++)
     {
         if (PHY_demoluate_OOK(symbols_buffer, &i, symbols_length, mes_buffer))
         {
             PHY_decode_manchester(mes_buffer, manchester_symbols);
             test_get_ASCII(manchester_symbols, ascii_mes);
-
-            for (int j = 0; j < MES_LENGTH; j++)
+            if(ascii_mes[0]==70&&ascii_mes[1]==111&&ascii_mes[2]==49&&ascii_mes[3]==33)
             {
-                printf("%d,", ascii_mes[j]);
+                ret++;
             }
-            printf("\n");
+
+            // for (int j = 0; j < MES_LENGTH; j++)
+            // {
+            //     printf("%d,", ascii_mes[j]);
+            // }
+            // printf("\n");
 
             memset(ascii_mes, 0, MES_LENGTH * sizeof(uint8_t));
             memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
         }
     }
+    return ret;
 }
+
 
 void test1_get_packet_spinal(uint8_t *symbols_buffer, uint32_t symbols_length)
 {

@@ -135,13 +135,13 @@ uint8_t PHY_demoluate_OOK(const uint8_t *buffer, uint16_t *start_index, const ui
             return mes_start_flag;
         }
     }
-    if (mes_start_flag)
-    {
-        overflow_symbol_counter++;
-        s_count = 0;;
-        *start_index=length;
-        return 0;
-    }
+    // if (mes_start_flag)
+    // {
+    //     overflow_symbol_counter++;
+    //     s_count = 0;;
+    //     *start_index=length;
+    //     return 0;
+    // }
     *start_index = length;
     return mes_start_flag;
 }
@@ -263,15 +263,15 @@ uint8_t PHY_demoluate_OOK_spinal(const uint8_t *buffer, uint16_t *start_index, c
             return mes_start_flag;
         }
     }
-    if (mes_start_flag)
-    {
-        overflow_symbol_counter++;
-        s_count = 0;
-        pass_counter = 0;
-        head = 0;
-        *start_index = length;
-        return 0;
-    }
+    // if (mes_start_flag)
+    // {
+    //     overflow_symbol_counter++;
+    //     s_count = 0;
+    //     pass_counter = 0;
+    //     head = 0;
+    //     *start_index = length;
+    //     return 0;
+    // }
     *start_index = length;
     return mes_start_flag;
 }

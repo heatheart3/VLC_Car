@@ -30,7 +30,7 @@ void test_print_PHY_symbols_buffer(uint8_t *buffer, uint32_t length);
 void test_get_ASCII(const uint8_t* symbols, uint8_t* ch);
 
 void test0_get_packet(uint8_t* symbols_buffer,uint32_t symbols_length);
-void test0_get_packet_ver2(uint8_t *symbols_buffer, uint32_t symbols_length);
+uint32_t test0_get_packet_ver2(uint8_t *symbols_buffer, uint32_t symbols_length);
 
 void test1_get_packet_spinal(uint8_t* symbols_buffer,uint32_t symbols_length);
 void test1_get_packet_spinal_ver2(uint8_t *symbols_buffer, uint32_t symbols_length);
