@@ -31,10 +31,10 @@ void sort_subtrees(Wavefront**subtrees,int l, int r)
         do j--;while(min_subtree_nodes(subtrees[j])>x);
         if(i<j)
         {
-            Wavefront tmp[1<<K]={0};
-            memcpy(&tmp,subtrees[i],sizeof(Wavefront)*(1<<K));
-            memcpy(subtrees[i],subtrees[j],sizeof(Wavefront)*(1<<K));
-            memcpy(subtrees[j],&tmp,sizeof(Wavefront)*(1<<K));
+            Wavefront tmp[1<<(K*(D-1))]={0};
+            memcpy(&tmp,subtrees[i],sizeof(Wavefront)*(1<<(K*(D-1))));
+            memcpy(subtrees[i],subtrees[j],sizeof(Wavefront)*(1<<(K*(D-1))));
+            memcpy(subtrees[j],&tmp,sizeof(Wavefront)*(1<<(K*(D-1))));
         }
     }
     sort_subtrees(subtrees,l,j);
@@ -89,8 +89,21 @@ void advance(const char* symbols)
             for(int received_symbol=0;received_symbol<strlen(symbols);received_symbol++)
             {
                int node_symbol= map_func(next(&rng));
-               int distance = symbols[received_symbol]-node_symbol;
-               edge_metric+=distance*distance;
+            //    int distance = symbols[received_symbol]-node_symbol;
+            //    edge_metric+=distance*distance;
+                int n = symbols[received_symbol]^node_symbol;
+                 int temp=0;
+                 int distance=0;
+                 while(n)
+                 {
+                     temp = n%2;
+                     if(temp==1)
+                     {
+                         distance++;
+                     }
+                     n=n/2;
+                 }
+                    edge_metric+=distance;
             }
             int new_path_metric = self_wavefront[i].path_metric+edge_metric;
             new_wavefront[tmp_wave_front_length].path_metric=new_path_metric;

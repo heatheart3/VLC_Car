@@ -18,7 +18,11 @@ void test0_transmit_nonencode(const char* mes);
 void test0_transmit_nonencode_ver2(const char *mes);
 
 void test1_transmit_spinal(const char* mes);
+void test1_transmit_spinal_ver2(const char *mes);
+
+void test2_transmit_allinone();
 
 void test_square_wave();
+void test_10_1100();
 
 #endif

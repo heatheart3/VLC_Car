@@ -12,15 +12,7 @@
 #define  MES_HEADER "011110"
 
 
-
-//CLOCK=16
-//10=195KHz
-//50= 50KHz
-//100=25KHz
-
-//CLOCK=160
-//100=5KHz
-#define TRANSMIT_PERIOD 20 //US
+#define TRANSMIT_PERIOD 15 //60KHz
 
 
 /**

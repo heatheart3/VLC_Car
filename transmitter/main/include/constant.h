@@ -10,10 +10,10 @@
 
 //Spinalcodes parameters
 #define K 3 //<=3, or the heap will overlap.
-#define C 4
+#define C 5
 #define B 4
 #define D 2 
-#define PASS 1
+#define PASS 3
 
 #define WAVEFRONT_MAX B*(1<<K)*(1<<K)
 #define SUBTREES_MAX B*(1<<K)

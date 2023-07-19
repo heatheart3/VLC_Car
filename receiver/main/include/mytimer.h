@@ -15,6 +15,7 @@ extern bool timer_isr_flag;
  */
 void my_timer_init(gptimer_handle_t *gptimer);
 
+void timer_clock_init(gptimer_handle_t *out_gptimer);
 
 /**
  * @brief Timer Alarm ISR function.

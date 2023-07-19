@@ -2,12 +2,19 @@
 #define VLC_ESP32_HARDWARE_H
 
 #include "./include/decoder.h"
-
+#include "./include/mytimer.h"
 #include <stdio.h>
 #include "esp32/rom/ets_sys.h"
 #include "driver/gpio.h"
 
 extern  uint8_t overflow_symbol_counter;
+
+extern uint64_t s_count;
+extern uint64_t e_count;
+extern gptimer_handle_t gptimer;
+
+extern int pass_counter;
+extern int head;
 
 /**
  * @brief Configures a GPIO pin as input
@@ -30,6 +37,11 @@ void PHY_decode_networkcoding(const uint8_t *symbols, uint8_t *mes);
 
 
 void PHY_decode_spinal(const uint8_t *symbols, uint8_t *mes);
+
+
+void  PHY_decode_allinone(const uint8_t *symbols, uint8_t *mes,uint8_t* symbolsB);
+
+uint8_t PHY_demoluate_OOK_spinal(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer,uint8_t *header_length);
 
 
 #endif

@@ -60,6 +60,7 @@ void transmit_ascii(const char *data, int GPIO_OUTPUT_LIGHT)
                 ets_delay_us(TRANSMIT_PERIOD);
                 gpio_set_level(GPIO_OUTPUT_LIGHT, 1);
                 ets_delay_us(TRANSMIT_PERIOD);
+
             }
             else
             {
@@ -67,6 +68,7 @@ void transmit_ascii(const char *data, int GPIO_OUTPUT_LIGHT)
                 ets_delay_us(TRANSMIT_PERIOD);
                 gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
                 ets_delay_us(TRANSMIT_PERIOD);
+
             }
         }
     }
@@ -76,39 +78,66 @@ void transmit_ascii(const char *data, int GPIO_OUTPUT_LIGHT)
 
 void manchester_OOK(uint8_t *symbols, const int GPIO_OUTPUT_LIGHT)
 {
-    volatile char bit;
 
+    uint8_t transmit_tmp[PASS_LENGTH*C] = {0};
+    uint8_t tmp_counter=0;
+
+    for(int i=0;i<PASS_LENGTH;i++)
+    {
+        for(int j=C-1;j>=0;j--)
+        {
+            transmit_tmp[tmp_counter++] = (symbols[i] >> j) & 0x01;
+        }
+    }
+    free(symbols);
     // 1. preamble: 011110
     transmit_ook(MES_HEADER, GPIO_RIGHT_LIGHT);
 
     // 2.manchester encoding then OOK modulation
-    for (int i = 0; i < PASS_LENGTH; i++)
+    // for (int i = 0; i < PASS_LENGTH; i++)
+    // {
+    //     for (int j = C - 1; j >= 0; j--)
+    //     {
+    //         bit = (symbols[i] >> j) & 0x01;
+
+    //         // 1->01
+    //         if (bit == 1)
+    //         {
+    //             gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
+    //             ets_delay_us(TRANSMIT_PERIOD);
+    //             gpio_set_level(GPIO_OUTPUT_LIGHT, 1);
+    //             ets_delay_us(TRANSMIT_PERIOD);
+    //         }
+
+    //         // 0->10
+    //         else
+    //         {
+    //             gpio_set_level(GPIO_OUTPUT_LIGHT, 1);
+    //             ets_delay_us(TRANSMIT_PERIOD);
+    //             gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
+    //             ets_delay_us(TRANSMIT_PERIOD);
+    //         }
+    //     }
+    // }
+
+    for(int i=0;i<PASS_LENGTH*C;i++)
     {
-        for (int j = C - 1; j >= 0; j--)
+        if(transmit_tmp[i]==1)
         {
-            bit = (symbols[i] >> j) & 0x01;
-
-            // 1->01
-            if (bit == 1)
-            {
-                gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
-                ets_delay_us(TRANSMIT_PERIOD);
-                gpio_set_level(GPIO_OUTPUT_LIGHT, 1);
-                ets_delay_us(TRANSMIT_PERIOD);
-            }
-
-            // 0->10
-            else
-            {
-                gpio_set_level(GPIO_OUTPUT_LIGHT, 1);
-                ets_delay_us(TRANSMIT_PERIOD);
-                gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
-                ets_delay_us(TRANSMIT_PERIOD);
-            }
+            gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
+            ets_delay_us(TRANSMIT_PERIOD);
+            gpio_set_level(GPIO_OUTPUT_LIGHT, 1);
+            ets_delay_us(TRANSMIT_PERIOD);
+        }
+        else
+        {
+            gpio_set_level(GPIO_OUTPUT_LIGHT, 1);
+            ets_delay_us(TRANSMIT_PERIOD);
+            gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
+            ets_delay_us(TRANSMIT_PERIOD);
         }
     }
     // 3. postamble: 0
     gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
     ets_delay_us(TRANSMIT_PERIOD);
-    free(symbols);
 }
