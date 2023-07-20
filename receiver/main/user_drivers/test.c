@@ -1,6 +1,6 @@
 #include "./include/test.h"
 
-int head=0;
+int head = 0;
 void test_print_PHY_symbols_buffer(uint8_t *buffer, uint32_t length)
 {
     for (int i = 0; i < length; i++)
@@ -93,7 +93,7 @@ void test1_get_packet_spinal(uint8_t *symbols_buffer, uint32_t symbols_length)
 
     for (uint16_t i = 0; i < symbols_length; i++)
     {
-        if (PHY_demoluate_OOK_spinal(symbols_buffer, &i, symbols_length, mes_buffer,&head))
+        if (PHY_demoluate_OOK_spinal(symbols_buffer, &i, symbols_length, mes_buffer, &head))
         {
             // for(int i=0;i<OOK_SYMBOLS_LEN;i++)
             // {
@@ -105,7 +105,7 @@ void test1_get_packet_spinal(uint8_t *symbols_buffer, uint32_t symbols_length)
                 int index = 1;
                 uint8_t symbols[SPINE_LENGTH];
                 printf("p%d:", pass_counter);
-                for (int X = 0; X< SPINE_LENGTH; X++)
+                for (int X = 0; X < SPINE_LENGTH; X++)
                 {
                     symbols[X] = 0;
                     for (int j = 0; j < C; j++)
@@ -118,20 +118,20 @@ void test1_get_packet_spinal(uint8_t *symbols_buffer, uint32_t symbols_length)
                     printf("%d,", symbols[X]);
                 }
                 printf("\n");
-                if(head==1)
+                if (head == 1)
                 {
                     memcpy(spinal_mes_buffer, mes_buffer, OOK_SYMBOLS_LEN * sizeof(uint8_t));
-                    pass_counter=1;
+                    pass_counter = 1;
                 }
-                else if(pass_counter>=1)
+                else if (pass_counter >= 1)
                 {
-                    memcpy(&spinal_mes_buffer[pass_counter*OOK_SYMBOLS_LEN], mes_buffer, OOK_SYMBOLS_LEN * sizeof(uint8_t));
+                    memcpy(&spinal_mes_buffer[pass_counter * OOK_SYMBOLS_LEN], mes_buffer, OOK_SYMBOLS_LEN * sizeof(uint8_t));
                     pass_counter++;
                 }
             }
             if (pass_counter == PASS)
             {
-                head=0;
+                head = 0;
                 pass_counter = 0;
                 PHY_decode_spinal(spinal_mes_buffer, ascii_mes);
                 for (int j = 0; j < MES_LENGTH; j++)
@@ -139,15 +139,14 @@ void test1_get_packet_spinal(uint8_t *symbols_buffer, uint32_t symbols_length)
                     printf("%d,", ascii_mes[j]);
                 }
                 printf("\n");
-    
-                memset(spinal_mes_buffer,0,OOK_SYMBOLS_LEN*PASS*sizeof(uint8_t));
+
+                memset(spinal_mes_buffer, 0, OOK_SYMBOLS_LEN * PASS * sizeof(uint8_t));
             }
             memset(ascii_mes, 0, MES_LENGTH * sizeof(uint8_t));
             memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
         }
     }
 }
-
 
 void test1_get_packet_spinal_ver2(uint8_t *symbols_buffer, uint32_t symbols_length)
 {
@@ -186,7 +185,13 @@ void test2_get_overall_latency(uint8_t *symbols_buffer, uint32_t symbols_length,
             // printf("\n");
             PHY_decode_allinone(mes_buffer, ascii_mes, symbolsB);
             ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &e_count));
-            if (ascii_mes[0] == 'S' && ascii_mes[1] == 'C' && ascii_mes[2] == 'U' && ascii_mes[3] == '1')
+
+            // for (int j = 0; j < MES_LENGTH; j++)
+            // {
+            //     printf("%d,", ascii_mes[j]);
+            // }
+            // printf("\n");
+            if (ascii_mes[0] == 70 && ascii_mes[1] == 111 && ascii_mes[2] == 49 && ascii_mes[3] == 33)
             {
                 if (s_error_count != 0)
                     printf("N,%lld\n", e_count - s_error_count);
@@ -203,4 +208,45 @@ void test2_get_overall_latency(uint8_t *symbols_buffer, uint32_t symbols_length,
             memset(mes_buffer, 0, OOK_SYMBOLS_LEN);
         }
     }
+}
+
+uint32_t test2_get_packet_non_throughput(uint8_t *symbols_buffer, uint32_t symbols_length)
+{
+    uint32_t ret = 0;
+    for (uint16_t i = 0; i < symbols_length; i++)
+    {
+        if (PHY_demoluate_OOK(symbols_buffer, &i, symbols_length, mes_buffer))
+        {
+            PHY_decode_manchester(mes_buffer, manchester_symbols);
+            test_get_ASCII(manchester_symbols, ascii_mes);
+
+            if (ascii_mes[0] == 70 && ascii_mes[1] == 111 && ascii_mes[2] == 49 && ascii_mes[3] == 33)
+            {
+                ret++;
+            }
+
+            memset(ascii_mes, 0, MES_LENGTH * sizeof(uint8_t));
+            memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
+        }
+    }
+    return ret;
+}
+
+uint32_t test2_get_packet_sc_throughput(uint8_t *symbols_buffer, uint32_t symbols_length)
+{
+    uint32_t ret = 0;
+    for (uint16_t i = 0; i < symbols_length; i++)
+    {
+        if (PHY_demoluate_OOK(symbols_buffer, &i, symbols_length, mes_buffer))
+        {
+            PHY_decode_spinal(mes_buffer, ascii_mes);
+            if (ascii_mes[0] == 70 && ascii_mes[1] == 111 && ascii_mes[2] == 49 && ascii_mes[3] == 33)
+            {
+                ret++;
+            }
+            memset(ascii_mes, 0, MES_LENGTH * sizeof(uint8_t));
+            memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
+        }
+    }
+    return ret;
 }

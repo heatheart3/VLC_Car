@@ -23,7 +23,7 @@
 #define C 5
 #define B 4
 #define D 2 
-#define PASS 1
+#define PASS 5
 
 /**
  * @brief  Spianl Code Decoder intermediate parameters
@@ -44,12 +44,12 @@
  * @brief Demodulation parameters
  */
 #define HEADER_THRES 12
-#define DOUBLE_HIGH_THRES 7
-#define DOUBLE_LOW_THRES 7
+#define DOUBLE_HIGH_THRES 8
+#define DOUBLE_LOW_THRES 8
 #define SINGLE_HIGH_THRES 2
 #define SINGLE_LOW_THRES 2
 
-#define OOK_SYMBOLS_LEN (SPINE_LENGTH*C*2)
+#define OOK_SYMBOLS_LEN (SPINE_LENGTH*C*2*PASS)
 // #define OOK_SYMBOLS_LEN 64
 #define MANCHESTER_SYMBOLS_LEN (OOK_SYMBOLS_LEN/2)
 

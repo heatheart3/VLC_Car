@@ -186,7 +186,7 @@ void test0_transmit_nonencode_ver2(const char *mes)
     {
 
         transmit_ascii(mes, GPIO_RIGHT_LIGHT);
-        for (int j = 0; j < 20; j++)
+        for (int j = 0; j < 2; j++)
         {
             gpio_set_level(GPIO_RIGHT_LIGHT, 1);
             ets_delay_us(TRANSMIT_PERIOD);
@@ -309,7 +309,7 @@ void test1_transmit_spinal_ver2(const char *mes)
         // 3. postamble: 0
         gpio_set_level(GPIO_RIGHT_LIGHT, 0);
         ets_delay_us(TRANSMIT_PERIOD);
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 2; i++)
         {
             gpio_set_level(GPIO_RIGHT_LIGHT, 1);
             ets_delay_us(TRANSMIT_PERIOD);
@@ -321,7 +321,7 @@ void test1_transmit_spinal_ver2(const char *mes)
 
 void test2_transmit_allinone()
 {
-    char *mesA = "SCU1";
+    char *mesA = "Fo1!";
     char *mesB = "NTU0";
 
     while (1)
@@ -332,7 +332,7 @@ void test2_transmit_allinone()
 
         manchester_OOK(network_code, GPIO_RIGHT_LIGHT);
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 2; i++)
         {
             gpio_set_level(GPIO_RIGHT_LIGHT, 1);
             ets_delay_us(TRANSMIT_PERIOD);

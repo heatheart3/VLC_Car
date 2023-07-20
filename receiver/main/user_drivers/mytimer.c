@@ -2,6 +2,7 @@
 
 bool  timer_on_alarm_cb()
 {
+    timer_isr_flag=true;
     return true;
 }
 
