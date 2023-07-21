@@ -134,7 +134,7 @@ static void inline initWavefront()
 static void get_most_likely(uint8_t* ret)
 {
     int best_node=0;
-    int tmp = UINT16_MAX;
+    uint16_t tmp = UINT16_MAX;
     for(int i=0;i<wave_front_length;i++)
     {
         if(self_wavefront[i].path_metric<tmp)

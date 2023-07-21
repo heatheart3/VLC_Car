@@ -12,12 +12,12 @@
 
 #define PD_GPIO_NUM 35
 #define SYMBOLS_BUFFER_SIZE 6000
+#define SYMBOLS_BUFFER_SIZE2 600
 
 uint8_t overflow_symbol_counter=0;
 uint8_t decode_right_conuter=0;
-int pass_counter=0;
 
-// static uint8_t symbols_buffer[SYMBOLS_BUFFER_SIZE];
+static uint8_t symbols_buffer[SYMBOLS_BUFFER_SIZE];
 
 
 uint64_t s_count=0;
@@ -30,19 +30,20 @@ bool timer_isr_flag=false;
 void vtask_read(void *ptParam)
 {
 
-    static uint8_t send_buffer[SYMBOLS_BUFFER_SIZE];
+    uint8_t send_buffer[SYMBOLS_BUFFER_SIZE2];
     int send_bytes=0;
     while(1)
     {
-        PHY_read_symbols(send_buffer,SYMBOLS_BUFFER_SIZE,PD_GPIO_NUM);
+        PHY_read_symbols(send_buffer,SYMBOLS_BUFFER_SIZE2,PD_GPIO_NUM);
         send_bytes= xStreamBufferSend(StreamBuffer, 
                             (void*)send_buffer, 
-                            SYMBOLS_BUFFER_SIZE, 
+                            SYMBOLS_BUFFER_SIZE2, 
                             0);
 
         if(send_bytes==0)
         {
-            printf("-1\n");
+            xStreamBufferReset(StreamBuffer);
+            printf("-2\n");
         }
         // printf("-------------\n");
         // printf("send_bytes:%d\n",send_bytes);
@@ -53,26 +54,31 @@ void vtask_read(void *ptParam)
 void vtask_operate(void *ptParam)
 {
 
-    static uint8_t symbols_buffer[SYMBOLS_BUFFER_SIZE];
+    uint8_t symbols_buffer[SYMBOLS_BUFFER_SIZE2];
     int recv_bytes=0;
     uint32_t Rcounter=0;
     uint32_t tmp=0;
     while(1)
     {
-        if(timer_isr_flag)
-        {
-            printf("counter:%ld\n",Rcounter);
-            timer_isr_flag=false;
-            Rcounter=0;
-        }
+        // if(timer_isr_flag)
+        // {
+        //     printf("%ld\n",Rcounter);
+        //     timer_isr_flag=false;
+        //     Rcounter=0;
+        // }
         recv_bytes=xStreamBufferReceive(StreamBuffer, 
                                 (void*)symbols_buffer, 
                                 sizeof(symbols_buffer), 
-                                0);
+                                portMAX_DELAY);
 
-            
-        tmp=test0_get_packet_ver2(symbols_buffer, SYMBOLS_BUFFER_SIZE);
-        Rcounter+=tmp;
+        for(int i=0;i<SYMBOLS_BUFFER_SIZE2;i++)
+        {
+            printf("%d\n",symbols_buffer[i]);
+        }
+        printf("-1\n");
+        // tmp=test0_get_packet_ver2(symbols_buffer, SYMBOLS_BUFFER_SIZE2);
+        // test1_get_packet_spinal(symbols_buffer,SYMBOLS_BUFFER_SIZE2);
+        // Rcounter+=tmp;
         // test_print_PHY_symbols_buffer(symbols_buffer, SYMBOLS_BUFFER_SIZE);
         // printf("-----------------\n");
         // printf("recv_bytes:%d\n",recv_bytes);
@@ -84,8 +90,8 @@ void vtask_operate(void *ptParam)
 
 void app_main(void)
 {
-    // timer_clock_init(&gptimer);
-    my_timer_init(&gptimer);
+    timer_clock_init(&gptimer);
+    // my_timer_init(&gptimer);
     ESP_ERROR_CHECK(gptimer_start(gptimer));
     PHY_gpio_config(PD_GPIO_NUM);
 
@@ -94,21 +100,21 @@ void app_main(void)
     // while(1)
     // {
     //     PHY_read_symbols(symbols_buffer, SYMBOLS_BUFFER_SIZE, PD_GPIO_NUM);
-    //     // test_print_PHY_symbols_buffer(symbols_buffer, SYMBOLS_BUFFER_SIZE);
+    //     test_print_PHY_symbols_buffer(symbols_buffer, SYMBOLS_BUFFER_SIZE);
 
 
     //     // test0_get_packet_ver2(symbols_buffer, SYMBOLS_BUFFER_SIZE);
     //     // test1_get_packet_spinal(symbols_buffer, SYMBOLS_BUFFER_SIZE);
-    //     test1_get_packet_spinal_ver2(symbols_buffer, SYMBOLS_BUFFER_SIZE);   
+    //     // test1_get_packet_spinal_ver2(symbols_buffer, SYMBOLS_BUFFER_SIZE);   
     //     // test2_get_overall_latency(symbols_buffer, SYMBOLS_BUFFER_SIZE,symbolsB);
     // }
 
-    StreamBuffer= xStreamBufferCreate(SYMBOLS_BUFFER_SIZE*5,SYMBOLS_BUFFER_SIZE);
+    // StreamBuffer= xStreamBufferCreate(SYMBOLS_BUFFER_SIZE*10,SYMBOLS_BUFFER_SIZE2);
 
     if(StreamBuffer !=NULL)
     {
     xTaskCreatePinnedToCore(vtask_read, "vtask_read", 2048, NULL, 1, NULL, 0);
-    xTaskCreatePinnedToCore(vtask_operate, "vtask_operate", 2048, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(vtask_operate, "vtask_operate", 20000, NULL, 1, NULL, 1);
     }
     else
     {

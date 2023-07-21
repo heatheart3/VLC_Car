@@ -184,9 +184,8 @@ void test0_transmit_nonencode_ver2(const char *mes)
 {
     while (1)
     {
-
         transmit_ascii(mes, GPIO_RIGHT_LIGHT);
-        for (int j = 0; j < 20; j++)
+        for (int j = 0; j < 10; j++)
         {
             gpio_set_level(GPIO_RIGHT_LIGHT, 1);
             ets_delay_us(TRANSMIT_PERIOD);
@@ -213,15 +212,16 @@ void test1_transmit_spinal(const char *mes)
     free(symbols);
     while (1)
     {
+        // printf("p\n");
         for (int p = 1; p <= PASS; p++)
         {
-            // printf("p%d:", p);
             // 1. preamble: 011110
-
+            printf("%d\n",p);
             if (p == 1)
-                transmit_ook("01111110", GPIO_RIGHT_LIGHT);
-            else
-                transmit_ook(MES_HEADER, GPIO_RIGHT_LIGHT);
+            {transmit_ook("100001", GPIO_RIGHT_LIGHT);}
+
+
+            transmit_ook(MES_HEADER, GPIO_RIGHT_LIGHT);
 
             for (int i = (p - 1) * SPINE_LENGTH * C; i < p * SPINE_LENGTH * C; i++)
             {
@@ -247,7 +247,7 @@ void test1_transmit_spinal(const char *mes)
             gpio_set_level(GPIO_RIGHT_LIGHT, 0);
             ets_delay_us(TRANSMIT_PERIOD);
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 10; i++)
             {
                 gpio_set_level(GPIO_RIGHT_LIGHT, 1);
                 ets_delay_us(TRANSMIT_PERIOD);
@@ -283,6 +283,7 @@ void test1_transmit_spinal_ver2(const char *mes)
     free(symbols);
     while (1)
     {
+        printf("1\n");
         // 1. preamble: 011110
         transmit_ook(MES_HEADER, GPIO_RIGHT_LIGHT);
 
@@ -309,7 +310,7 @@ void test1_transmit_spinal_ver2(const char *mes)
         // 3. postamble: 0
         gpio_set_level(GPIO_RIGHT_LIGHT, 0);
         ets_delay_us(TRANSMIT_PERIOD);
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 20000; i++)
         {
             gpio_set_level(GPIO_RIGHT_LIGHT, 1);
             ets_delay_us(TRANSMIT_PERIOD);
@@ -339,5 +340,22 @@ void test2_transmit_allinone()
             gpio_set_level(GPIO_RIGHT_LIGHT, 0);
             ets_delay_us(TRANSMIT_PERIOD);
         }
+    }
+}
+
+
+void test_get_header()
+{
+
+    printf("header\n");
+    transmit_ook("01111110", GPIO_RIGHT_LIGHT);
+    transmit_ook("0110", GPIO_RIGHT_LIGHT);
+
+    for(int i=0;i<20000;i++)
+    {
+        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+        ets_delay_us(TRANSMIT_PERIOD);
     }
 }

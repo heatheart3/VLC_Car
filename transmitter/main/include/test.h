@@ -24,5 +24,6 @@ void test2_transmit_allinone();
 
 void test_square_wave();
 void test_10_1100();
+void test_get_header();
 
 #endif

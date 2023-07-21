@@ -13,15 +13,7 @@ extern uint64_t s_count;
 extern uint64_t e_count;
 extern gptimer_handle_t gptimer;
 
-extern int pass_counter;
-extern int head;
 
-
-static uint8_t mes_start_flag = 0;
-static uint8_t high_count = 0;
-static uint8_t low_count = 0;
-static int16_t bit_counter = -1;
-static uint8_t edge_dir = 0;
 
 /**
  * @brief Configures a GPIO pin as input
@@ -49,6 +41,6 @@ void PHY_decode_spinal(const uint8_t *symbols, uint8_t *mes);
 void  PHY_decode_allinone(const uint8_t *symbols, uint8_t *mes,uint8_t* symbolsB);
 
 uint8_t PHY_demoluate_OOK_spinal(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer,uint8_t *header_length);
-
-
+uint8_t PHY_demoluate_OOK_SpinalV2(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer);
+uint8_t PHY_demoluate_OOK_Ver2(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer);
 #endif

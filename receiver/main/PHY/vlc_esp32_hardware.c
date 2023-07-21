@@ -1,5 +1,15 @@
 #include "./include/vlc_esp32_hardware.h"
 
+
+
+static uint8_t mes_start_flag = 0;
+static uint8_t high_count = 0;
+static uint8_t low_count = 0;
+static int16_t bit_counter = -1;
+static uint8_t edge_dir = 0;
+
+
+
 /**
  * @brief Configures a GPIO pin as input
  */
@@ -21,6 +31,25 @@ void PHY_gpio_config(const int gpio_num)
  */
 void PHY_read_symbols(uint8_t *buffer, uint16_t length, const int PD_GPIO_NUM)
 {
+    uint8_t header_counter=0;
+    while(1)
+    {
+        if(gpio_get_level(PD_GPIO_NUM))
+        {
+            header_counter++;
+        }
+        else
+        {
+        if(header_counter>=HEADER_THRES)
+        {
+            ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &s_count));
+            header_counter=0;
+            break;
+        }
+            header_counter=0;
+        }
+        ets_delay_us(SAMPLING_DURATION);
+    }
     for (int i = 0; i < length; i++)
     {
         buffer[i] = gpio_get_level(PD_GPIO_NUM);
@@ -29,6 +58,212 @@ void PHY_read_symbols(uint8_t *buffer, uint16_t length, const int PD_GPIO_NUM)
 }
 
 uint8_t PHY_demoluate_OOK(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer)
+{
+    // uint8_t mes_start_flag = 0;
+    // uint8_t high_count = 0;
+    // uint8_t low_count = 0;
+    // int16_t bit_counter = -1;
+    // uint8_t edge_dir = 0;
+    for (int i = *start_index; i < length; i++)
+    {
+        if (!mes_start_flag)
+        {
+            if (buffer[i])
+            {
+                high_count++;
+            }
+            else
+            {
+                if (high_count >= HEADER_THRES)
+                {
+                    mes_start_flag = true;
+                    high_count = 0;
+                    bit_counter = -1;
+                    edge_dir = 0;
+                    ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &s_count));
+                }
+                else
+                {
+                    high_count = 0;
+                    low_count = 0;
+                }
+            }
+        }
+
+        else
+        {
+            if (buffer[i])
+            {
+                high_count++;
+            }
+            else
+            {
+                low_count++;
+            }
+
+            if (high_count != 0 && low_count != 0)
+            {
+                // dicard the lsb of header [011"0"]
+                if (bit_counter == -1)
+                {
+                    bit_counter++;
+                    if (low_count >= DOUBLE_LOW_THRES)
+                    {
+                        mes_buffer[bit_counter] = 0;
+                        bit_counter++;
+                    }
+                    low_count = 0;
+                    edge_dir = 1;
+                }
+                else if (bit_counter < OOK_SYMBOLS_LEN)
+                {
+                    if (edge_dir == 1)
+                    {
+                        if (high_count >= DOUBLE_HIGH_THRES)
+                        {
+                            mes_buffer[bit_counter] = 1;
+                            bit_counter++;
+                            mes_buffer[bit_counter] = 1;
+                            bit_counter++;
+                            high_count = 0;
+                        }
+                        else
+                        {
+                            mes_buffer[bit_counter] = 1;
+                            bit_counter++;
+                            high_count = 0;
+                        }
+                        edge_dir = 0;
+                    }
+                    else
+                    {
+                        if (low_count >= DOUBLE_LOW_THRES)
+                        {
+                            mes_buffer[bit_counter] = 0;
+                            bit_counter++;
+                            mes_buffer[bit_counter] = 0;
+                            bit_counter++;
+                            low_count = 0;
+                        }
+                        else
+                        {
+                            mes_buffer[bit_counter] = 0;
+                            bit_counter++;
+                            low_count = 0;
+                        }
+                        edge_dir = 1;
+                    }
+                }
+            }
+        }
+
+        if (bit_counter >= OOK_SYMBOLS_LEN)
+        {
+            *start_index = i--;
+            mes_start_flag=0;
+            high_count=0;
+            low_count=0;
+            bit_counter=-1;
+            edge_dir=0;
+            return 1;
+        }
+    }
+    // if (mes_start_flag)
+    // {
+    //     overflow_symbol_counter++;
+    //     s_count = 0;;
+    //     *start_index=length;
+    //     return 0;
+    // }
+    *start_index = length;
+    return mes_start_flag;
+}
+
+uint8_t PHY_demoluate_OOK_Ver2(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer)
+{
+    for (int i = *start_index; i < length; i++)
+    {
+            if (buffer[i])
+            {
+                high_count++;
+            }
+            else
+            {
+                low_count++;
+            }
+
+            if (high_count != 0 && low_count != 0)
+            {
+                // dicard the lsb of header [011"0"]
+                if (bit_counter == -1)
+                {
+                    bit_counter++;
+                    if (low_count >= DOUBLE_LOW_THRES)
+                    {
+                        mes_buffer[bit_counter] = 0;
+                        bit_counter++;
+                    }
+                    low_count = 0;
+                    edge_dir = 1;
+                }
+                else if (bit_counter < OOK_SYMBOLS_LEN)
+                {
+                    if (edge_dir == 1)
+                    {
+                        if (high_count >= DOUBLE_HIGH_THRES)
+                        {
+                            mes_buffer[bit_counter] = 1;
+                            bit_counter++;
+                            mes_buffer[bit_counter] = 1;
+                            bit_counter++;
+                            high_count = 0;
+                        }
+                        else
+                        {
+                            mes_buffer[bit_counter] = 1;
+                            bit_counter++;
+                            high_count = 0;
+                        }
+                        edge_dir = 0;
+                    }
+                    else
+                    {
+                        if (low_count >= DOUBLE_LOW_THRES)
+                        {
+                            mes_buffer[bit_counter] = 0;
+                            bit_counter++;
+                            mes_buffer[bit_counter] = 0;
+                            bit_counter++;
+                            low_count = 0;
+                        }
+                        else
+                        {
+                            mes_buffer[bit_counter] = 0;
+                            bit_counter++;
+                            low_count = 0;
+                        }
+                        edge_dir = 1;
+                    }
+                }
+            }
+        
+
+        if (bit_counter >= OOK_SYMBOLS_LEN)
+        {
+            *start_index = length;
+            mes_start_flag=0;
+            high_count=0;
+            low_count=0;
+            bit_counter=-1;
+            edge_dir=0;
+            return 1;
+        }
+    }
+    *start_index = length;
+    return mes_start_flag;
+}
+
+uint8_t PHY_demoluate_OOK_SpinalV2(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer)
 {
     uint8_t mes_start_flag = 0;
     uint8_t high_count = 0;
@@ -131,20 +366,26 @@ uint8_t PHY_demoluate_OOK(const uint8_t *buffer, uint16_t *start_index, const ui
         if (bit_counter >= OOK_SYMBOLS_LEN)
         {
             *start_index = i--;
-            // printf("YYY");
-            return mes_start_flag;
+            mes_start_flag=0;
+            high_count=0;
+            low_count=0;
+            bit_counter=-1;
+            edge_dir=0;
+            return 1;
         }
     }
-    // if (mes_start_flag)
-    // {
-    //     overflow_symbol_counter++;
-    //     s_count = 0;;
-    //     *start_index=length;
-    //     return 0;
-    // }
+    if (mes_start_flag)
+    {
+        overflow_symbol_counter++;
+        s_count = 0;;
+        *start_index=length;
+        return 0;
+    }
     *start_index = length;
     return mes_start_flag;
 }
+
+
 
 uint8_t PHY_demoluate_OOK_spinal(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer, uint8_t *header_length)
 {
@@ -170,7 +411,7 @@ uint8_t PHY_demoluate_OOK_spinal(const uint8_t *buffer, uint16_t *start_index, c
                     bit_counter = -1;
                     // ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &s_count));
                     *header_length = 1;
-                    edge_dir=0;
+                    edge_dir = 0;
                 }
                 else if (high_count >= HEADER_THRES)
                 {
@@ -179,7 +420,7 @@ uint8_t PHY_demoluate_OOK_spinal(const uint8_t *buffer, uint16_t *start_index, c
                     bit_counter = -1;
                     // ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &s_count));
                     *header_length = 0;
-                    edge_dir=0;
+                    edge_dir = 0;
                 }
                 else
                 {
@@ -212,7 +453,7 @@ uint8_t PHY_demoluate_OOK_spinal(const uint8_t *buffer, uint16_t *start_index, c
                         bit_counter++;
                     }
                     low_count = 0;
-                    edge_dir=1;
+                    edge_dir = 1;
                 }
                 else if (bit_counter < OOK_SYMBOLS_LEN)
                 {
@@ -337,8 +578,12 @@ void PHY_decode_spinal(const uint8_t *symbols, uint8_t *mes)
     // {
     //     printf("%d ",intermediate_symbols[i]);
     // }
+    // printf("\n");
     SpinalDecode(intermediate_symbols, mes);
 }
+
+
+
 
 void PHY_decode_allinone(const uint8_t *symbols, uint8_t *mes, uint8_t *symbolsB)
 {

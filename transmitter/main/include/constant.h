@@ -13,7 +13,7 @@
 #define C 5
 #define B 4
 #define D 2 
-#define PASS 3
+#define PASS 5
 
 #define WAVEFRONT_MAX B*(1<<K)*(1<<K)
 #define SUBTREES_MAX B*(1<<K)
