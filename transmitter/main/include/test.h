@@ -26,4 +26,7 @@ void test_square_wave();
 void test_10_1100();
 void test_get_header();
 
+
+void test_transmit_raptor();
+
 #endif

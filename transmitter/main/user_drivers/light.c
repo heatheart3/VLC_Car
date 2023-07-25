@@ -141,3 +141,27 @@ void manchester_OOK(uint8_t *symbols, const int GPIO_OUTPUT_LIGHT)
     gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
     ets_delay_us(TRANSMIT_PERIOD);
 }
+
+
+void transmit_8bitz(const uint8_t data, const int GPIO_OUTPUT_LIGHT)
+{
+    volatile uint8_t bit=0;
+        for (int j = 7; j >= 0; j--)
+    {
+        bit = (data >> j) & 0x01;
+        if (bit == 1)
+        {
+            gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
+            ets_delay_us(TRANSMIT_PERIOD);
+            gpio_set_level(GPIO_OUTPUT_LIGHT, 1);
+            ets_delay_us(TRANSMIT_PERIOD);
+        }
+        else
+        {
+            gpio_set_level(GPIO_OUTPUT_LIGHT, 1);
+            ets_delay_us(TRANSMIT_PERIOD);
+            gpio_set_level(GPIO_OUTPUT_LIGHT, 0);
+            ets_delay_us(TRANSMIT_PERIOD);
+        }
+    }
+}

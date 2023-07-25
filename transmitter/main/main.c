@@ -21,50 +21,45 @@
 #include <sys/time.h>
 
 
-void vtask_transmitter()
-{
-        while (1)
-    {
-        
-        // test_get_header();
-        // test_square_wave(); 
-        // test_10_1100();
-        // test0_transmit_nonencode_ver2("Fo1!");
-        // test1_transmit_spinal("Fo1!");
-        // test1_transmit_spinal_ver2("Fo1!");
-        // test2_transmit_allinone();
-    }
-}
 
-void vtask_test()
-{
-    int i=0;
-    while(1)
-    {
-        i++;
-        i++;
-    }
-}
+#define BYTE8 "IloveSCU"
+#define BYTE16 "IloveSCUSCUloveI"
+#define BYTE32 "IloveSCUSCUloveI12345678HAHAsu~~"
+#define BYTE64 "IloveSCUSCUloveI12345678HAHAsu~~8848royal!!brandnew!!xdflopo;].;"
+#define BYTE128 "IloveSCUSCUloveI12345678HAHAsu~~8848royal!!brandnew!!xdflopo;].;IloveSCUSCUloveI12345678HAHAsu~~8848royal!!brandnew!!xdflopo;].;"
+#define BYTE256
+#define BYTE512
+
 void app_main(void)
 {
 
     light_ook_config(GPIO_RIGHT_LIGHT);
     gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-
-    TaskHandle_t Handle1 =NULL;
-    TaskHandle_t Handle2 =NULL;
-
-    // xTaskCreatePinnedToCore(vtask_transmitter,"transmitter",8192,NULL,1,&Handle1,0);
-    // xTaskCreatePinnedToCore(vtask_test,"test",2048,NULL,1,&Handle2,1);
-
     while (1)
     {
         // test_get_header();
         // test_square_wave(); 
-    //     // test_10_1100();
-        // test0_transmit_nonencode_ver2("Fo1!");
-        test1_transmit_spinal("Fo1!");
-        // test1_transmit_spinal_ver2("Fo1!");
+        // test_10_1100();
+        // test0_transmit_nonencode_ver2("IloveSCU");
+        // test0_transmit_nonencode_ver4("IloveSCUSCUlovesme123987howaboutvehicletalk!it'sreallycooldon92outhinkis912889joixzcvjxocjv98xcvxjcivoj0v9cxzjvxzcv9xzvxcjv9xc02");
+
+        // test0_transmit_nonencode_ver2(BYTE8);
+        // 8 bytes
+        // test0_transmit_nonencode_ver4("IloveSCU");
+
+        // 16 bytes
+        // test0_transmit_nonencode_ver4("IloveSCUSCUloveI");
+        
+        // 32 bytes
+        // test0_transmit_nonencode_ver4("IloveSCUSCUloveI12345678HAHAsu~~");
+
+        // test0_transmit_nonencode_ver4(BYTE128);
+        // test1_transmit_spinal_ver2("IloveSCU");
+        // test1_transmit_spinal_ver3("IloveSCU");
+        // test1_transmit_spinal_ver4(BYTE8);
     //     // test2_transmit_allinone();
+
+
+        test_transmit_raptor();
     }
 }

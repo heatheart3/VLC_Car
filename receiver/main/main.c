@@ -7,17 +7,15 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
-#include "freertos/stream_buffer.h"
+#include "freertos/message_buffer.h"
 
 
 #define PD_GPIO_NUM 35
 #define SYMBOLS_BUFFER_SIZE 6000
-#define SYMBOLS_BUFFER_SIZE2 600
+#define SYMBOLS_BUFFER_SIZE2 2000
 
 uint8_t overflow_symbol_counter=0;
 uint8_t decode_right_conuter=0;
-
-static uint8_t symbols_buffer[SYMBOLS_BUFFER_SIZE];
 
 
 uint64_t s_count=0;
@@ -25,7 +23,8 @@ uint64_t e_count=0;
 uint64_t s_error_count=0;
 gptimer_handle_t gptimer =NULL;
 
-StreamBufferHandle_t StreamBuffer = NULL;
+
+MessageBufferHandle_t MessageBuffer = NULL;
 bool timer_isr_flag=false;
 void vtask_read(void *ptParam)
 {
@@ -34,15 +33,16 @@ void vtask_read(void *ptParam)
     int send_bytes=0;
     while(1)
     {
+        memset(send_buffer,0,SYMBOLS_BUFFER_SIZE2*sizeof(uint8_t));
         PHY_read_symbols(send_buffer,SYMBOLS_BUFFER_SIZE2,PD_GPIO_NUM);
-        send_bytes= xStreamBufferSend(StreamBuffer, 
+        send_bytes= xMessageBufferSend(MessageBuffer, 
                             (void*)send_buffer, 
                             SYMBOLS_BUFFER_SIZE2, 
                             0);
 
         if(send_bytes==0)
         {
-            xStreamBufferReset(StreamBuffer);
+            xMessageBufferReset(MessageBuffer);
             printf("-2\n");
         }
         // printf("-------------\n");
@@ -66,16 +66,21 @@ void vtask_operate(void *ptParam)
         //     timer_isr_flag=false;
         //     Rcounter=0;
         // }
-        recv_bytes=xStreamBufferReceive(StreamBuffer, 
+
+        memset(symbols_buffer,0,SYMBOLS_BUFFER_SIZE2*sizeof(uint8_t));
+        recv_bytes=xMessageBufferReceive(MessageBuffer, 
                                 (void*)symbols_buffer, 
                                 sizeof(symbols_buffer), 
                                 portMAX_DELAY);
 
-        for(int i=0;i<SYMBOLS_BUFFER_SIZE2;i++)
-        {
-            printf("%d\n",symbols_buffer[i]);
-        }
-        printf("-1\n");
+        // for(int i=0;i<SYMBOLS_BUFFER_SIZE2;i++)
+        // {
+        //     printf("%d\n",symbols_buffer[i]);
+        // }
+        // printf("-1\n");
+
+        test_get_raptor(symbols_buffer,SYMBOLS_BUFFER_SIZE2);
+
         // tmp=test0_get_packet_ver2(symbols_buffer, SYMBOLS_BUFFER_SIZE2);
         // test1_get_packet_spinal(symbols_buffer,SYMBOLS_BUFFER_SIZE2);
         // Rcounter+=tmp;
@@ -95,12 +100,13 @@ void app_main(void)
     ESP_ERROR_CHECK(gptimer_start(gptimer));
     PHY_gpio_config(PD_GPIO_NUM);
 
-    uint8_t symbolsB[]={1,10,4,8,1,2,2,8,6,14,11};
 
+
+    // uint8_t test_buffer[SYMBOLS_BUFFER_SIZE];
     // while(1)
     // {
-    //     PHY_read_symbols(symbols_buffer, SYMBOLS_BUFFER_SIZE, PD_GPIO_NUM);
-    //     test_print_PHY_symbols_buffer(symbols_buffer, SYMBOLS_BUFFER_SIZE);
+    //     PHY_easy_read_symbols(test_buffer,SYMBOLS_BUFFER_SIZE,PD_GPIO_NUM);
+    //     test_print_PHY_symbols_buffer(test_buffer, SYMBOLS_BUFFER_SIZE);
 
 
     //     // test0_get_packet_ver2(symbols_buffer, SYMBOLS_BUFFER_SIZE);
@@ -109,15 +115,15 @@ void app_main(void)
     //     // test2_get_overall_latency(symbols_buffer, SYMBOLS_BUFFER_SIZE,symbolsB);
     // }
 
-    // StreamBuffer= xStreamBufferCreate(SYMBOLS_BUFFER_SIZE*10,SYMBOLS_BUFFER_SIZE2);
+    MessageBuffer= xMessageBufferCreate(SYMBOLS_BUFFER_SIZE*10);
 
-    if(StreamBuffer !=NULL)
+    if(MessageBuffer !=NULL)
     {
-    xTaskCreatePinnedToCore(vtask_read, "vtask_read", 2048, NULL, 1, NULL, 0);
-    xTaskCreatePinnedToCore(vtask_operate, "vtask_operate", 20000, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(vtask_read, "vtask_read", 8192, NULL, 1, NULL, 0);
+    xTaskCreatePinnedToCore(vtask_operate, "vtask_operate", 8192, NULL, 1, NULL, 1);
     }
     else
     {
-        printf("StreamBuffer create failed\n");
+        printf("MessageBuffer create failed\n");
     }
 }

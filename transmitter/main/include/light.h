@@ -9,10 +9,10 @@
 #define GPIO_LEFT_LIGHT 26
 #define GPIO_RIGHT_LIGHT 27
 
-#define  MES_HEADER "011110"
+#define  MES_HEADER "11110000"
 
 
-#define TRANSMIT_PERIOD 15 //60KHz
+#define TRANSMIT_PERIOD 25 //60KHz
 
 
 /**
@@ -45,5 +45,7 @@ void transmit_ascii(const char* data, const int gpio_num);
  */
 void manchester_OOK(uint8_t* symbols,const int gpio_num);
 
+
+void transmit_8bitz(const uint8_t data, const int GPIO_OUTPUT_LIGHT);
 
 #endif

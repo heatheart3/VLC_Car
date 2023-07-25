@@ -27,6 +27,7 @@ void PHY_gpio_config(const int gpio_num);
  * @param length: number of symbols to be read
  */
 void PHY_read_symbols(uint8_t *buffer, uint16_t length,const int PD_GPIO_NUM);
+void PHY_easy_read_symbols(uint8_t *buffer, uint16_t length, const int PD_GPIO_NUM);
 
 uint8_t PHY_demoluate_OOK(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer);
 
@@ -43,4 +44,6 @@ void  PHY_decode_allinone(const uint8_t *symbols, uint8_t *mes,uint8_t* symbolsB
 uint8_t PHY_demoluate_OOK_spinal(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer,uint8_t *header_length);
 uint8_t PHY_demoluate_OOK_SpinalV2(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer);
 uint8_t PHY_demoluate_OOK_Ver2(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer);
+uint8_t PHY_demodulate_OOK_Ver3(const uint8_t *buffer, const uint16_t length, uint8_t *mes_buffer);
+
 #endif

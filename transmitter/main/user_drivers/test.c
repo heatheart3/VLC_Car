@@ -216,10 +216,11 @@ void test1_transmit_spinal(const char *mes)
         for (int p = 1; p <= PASS; p++)
         {
             // 1. preamble: 011110
-            printf("%d\n",p);
+            printf("%d\n", p);
             if (p == 1)
-            {transmit_ook("100001", GPIO_RIGHT_LIGHT);}
-
+            {
+                transmit_ook("100001", GPIO_RIGHT_LIGHT);
+            }
 
             transmit_ook(MES_HEADER, GPIO_RIGHT_LIGHT);
 
@@ -343,7 +344,6 @@ void test2_transmit_allinone()
     }
 }
 
-
 void test_get_header()
 {
 
@@ -351,11 +351,316 @@ void test_get_header()
     transmit_ook("01111110", GPIO_RIGHT_LIGHT);
     transmit_ook("0110", GPIO_RIGHT_LIGHT);
 
-    for(int i=0;i<20000;i++)
+    for (int i = 0; i < 20000; i++)
     {
         gpio_set_level(GPIO_RIGHT_LIGHT, 1);
         ets_delay_us(TRANSMIT_PERIOD);
         gpio_set_level(GPIO_RIGHT_LIGHT, 0);
         ets_delay_us(TRANSMIT_PERIOD);
+    }
+}
+
+void test_transmit_raptor()
+{
+
+    // Original Message has 203 char
+    uint8_t raptor_k = 203;
+    uint8_t raptor_coded_k = 255;
+
+    uint8_t raptor_symbols[255] = {
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        44,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        44,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        44,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        44,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        44,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        44,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        65,
+        1,
+        92,
+        106,
+        115,
+        117,
+        78,
+        55,
+        61,
+        59,
+        6,
+        4,
+        3,
+        120,
+        98,
+        83,
+        55,
+        125,
+        53,
+        120,
+        19,
+        0,
+        89,
+        117,
+        103,
+        31,
+        71,
+        65,
+        66,
+        111,
+        30,
+        64,
+        102,
+        52,
+        61,
+        3,
+        106,
+        68,
+        72,
+        120,
+        100,
+        124,
+        75,
+        114,
+        55,
+        2,
+        77,
+        49,
+        29,
+        79,
+        34};
+
+    // Each frame has 4 chars
+    uint8_t packet_per_frame = 4;
+
+    
+    // 1.the  MAX SSN, and if the reduant packet is not enough for 4,
+    // it'll not be transmitted.
+    //2. the max_ssn is up to 255
+    uint8_t max_ssn = raptor_coded_k / packet_per_frame;
+    while (1)
+    {
+        for (uint8_t i = 0; i < max_ssn; i++)
+        {
+            // printf("frame%d\n",i);
+            // 1. wait a little bit for the next frame
+            for(int j=0;j<100;j++)
+            {
+                gpio_set_level(GPIO_RIGHT_LIGHT, 1);
+                ets_delay_us(TRANSMIT_PERIOD);
+                gpio_set_level(GPIO_RIGHT_LIGHT,0);
+                ets_delay_us(TRANSMIT_PERIOD);
+            }
+
+            // 1. transmit HEADER
+            transmit_ook(MES_HEADER, GPIO_RIGHT_LIGHT);
+
+            // 2. transmit SSN
+            transmit_8bitz(i, GPIO_RIGHT_LIGHT);
+
+            //3. transmit Symbols
+            for (uint8_t j = 0; j < packet_per_frame; j++)
+            {
+                transmit_8bitz(raptor_symbols[i * packet_per_frame + j], GPIO_RIGHT_LIGHT);
+            }
+
+            // 4. transmit the stop bit
+            gpio_set_level(GPIO_RIGHT_LIGHT, 0);
+            ets_delay_us(TRANSMIT_PERIOD);
+        }
     }
 }
