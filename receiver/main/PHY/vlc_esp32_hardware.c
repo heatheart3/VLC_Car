@@ -44,6 +44,8 @@ void PHY_read_symbols(uint8_t *buffer, uint16_t length, const int PD_GPIO_NUM)
         }
         ets_delay_us(SAMPLING_DURATION);
     }
+
+    
     for (int i = 0; i < length; i++)
     {
         buffer[i] = gpio_get_level(PD_GPIO_NUM);
@@ -51,7 +53,35 @@ void PHY_read_symbols(uint8_t *buffer, uint16_t length, const int PD_GPIO_NUM)
     }
 }
 
+void PHY_read_symbols_ver2(uint8_t *buffer, uint16_t length, const int PD_GPIO_NUM)
+{
+    uint8_t header_counter=0;
+    while(1)
+    {
+        if(gpio_get_level(PD_GPIO_NUM))
+        {
+            header_counter++;
+        }
+        else
+        {
+        if(header_counter>=HEADER_THRES)
+        {
+            ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &s_count));
+            header_counter=0;
+            break;
+        }
+            header_counter=0;
+        }
+        ets_delay_us(SAMPLING_DURATION);
+    }
 
+    
+    for (int i = 0; i < length; i++)
+    {
+        buffer[i] = gpio_get_level(PD_GPIO_NUM);
+        ets_delay_us(SIGNAL_DURATION);
+    }
+}
 
 /*
 * @brief: just simple read all sampling points.
@@ -376,6 +406,81 @@ uint8_t PHY_demodulate_OOK_Ver3(const uint8_t *buffer, const uint16_t length, ui
     // 4. else return 0, but mainly this will not happen
     return 0;
 }
+
+uint8_t PHY_demodulate_OOK_Ver4(const uint8_t *buffer, const uint16_t length, uint8_t *mes_buffer)
+{
+    uint8_t high_count = 0;
+    uint8_t low_count = 0;
+    uint8_t signal_count=0;
+    int16_t bit_counter = -4;
+    uint8_t edge_dir = 0;
+    for (int i = 0 ; i < length; i++)
+    {
+        signal_count++;
+        // 1. calculate the signal duration
+        if(buffer[i])
+        {
+            high_count++;
+        }
+        else
+        {
+            low_count++;
+        }
+
+        // 2. if reach 1 bit duration, then demodulate the bit
+        if(signal_count>=10)
+        {
+            //2.1 discard the header ["0000"]
+            if(bit_counter<0)
+            {
+                bit_counter++;
+                high_count=0;
+                low_count=0;
+                signal_count=0;
+            }
+
+            //2.2 get the bit
+            else
+            {
+                if(high_count>=10)
+                {
+                    mes_buffer[bit_counter]=1;
+                    high_count=0;
+                    low_count=0;
+                    signal_count=0;
+                }
+                else if(low_count>=10)
+                {
+                    mes_buffer[bit_counter]=0;
+                    high_count=0;
+                    low_count=0;
+                    signal_count=0;
+                }
+                // noise exists, make it becomes 0
+                else
+                {
+                    high_count=0;
+                    low_count=0;
+                    signal_count=0;
+                    mes_buffer[bit_counter]=0;
+                }
+                bit_counter++;
+            }
+        }
+
+        //3. if collect enough bits from this frame
+        //   then break
+        if(bit_counter>=OOK_SYMBOLS_LEN)
+        {
+            return 1;
+        }
+    }
+    // 4. else return 0, but mainly this will not happen
+    return 0;
+}
+
+
+
 uint8_t PHY_demoluate_OOK_SpinalV2(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer)
 {
     uint8_t mes_start_flag = 0;
@@ -637,25 +742,14 @@ void PHY_decode_manchester(const uint8_t *symbols, uint8_t *mes)
     {
         if (symbols[j] == 0)
         {
-            if (symbols[j + 1] == 0)
-            {
-                break;
-            }
-            else
-            {
+           
                 mes[i] = 1;
-            }
         }
         else
         {
-            if (symbols[j + 1] == 1)
-            {
-                break;
-            }
-            else
-            {
+         
                 mes[i] = 0;
-            }
+
         }
         j += 2;
     }

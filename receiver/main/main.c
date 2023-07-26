@@ -79,10 +79,12 @@ void vtask_operate(void *ptParam)
         // }
         // printf("-1\n");
 
-        test_get_raptor(symbols_buffer,SYMBOLS_BUFFER_SIZE2);
+        // test_get_raptor(symbols_buffer,SYMBOLS_BUFFER_SIZE2);
 
-        // tmp=test0_get_packet_ver2(symbols_buffer, SYMBOLS_BUFFER_SIZE2);
+        // tmp=test0_get_packet_ver3(symbols_buffer, SYMBOLS_BUFFER_SIZE2);
+        test0_get_packet_ver2(symbols_buffer, SYMBOLS_BUFFER_SIZE2);
         // test1_get_packet_spinal(symbols_buffer,SYMBOLS_BUFFER_SIZE2);
+        // test1_get_packet_spinal_ver3(symbols_buffer,SYMBOLS_BUFFER_SIZE2);
         // Rcounter+=tmp;
         // test_print_PHY_symbols_buffer(symbols_buffer, SYMBOLS_BUFFER_SIZE);
         // printf("-----------------\n");

@@ -11,7 +11,7 @@
  * @brief  It's similar to sampling rate.
  */
 #define SAMPLING_DURATION 2
-
+#define SIGNAL_DURATION 25
 
 
 
@@ -23,14 +23,14 @@
 #define C 5
 #define B 4
 #define D 2 
-#define PASS 5
+#define PASS 1
 
 /**
  * @brief  Spianl Code Decoder intermediate parameters
  */
-// #define MES_LENGTH 8 //MAX_LENGTH is 8, because UINT64_MAX is 8 bytes
+#define MES_LENGTH 8 //MAX_LENGTH is 8, because UINT64_MAX is 8 bytes
 //for raptor code
-#define MES_LENGTH 5
+// #define MES_LENGTH 5
 
 #if (D==1)
 #define WAVEFRONT_MAX B*(1<<(K*(D)))*(1<<(K*(D)))
@@ -63,11 +63,11 @@
 #define SINGLE_LOW_THRES 2
 
 // #define OOK_SYMBOLS_LEN (SPINE_LENGTH*C*2)
-// #define OOK_SYMBOLS_LEN 128
+#define OOK_SYMBOLS_LEN 128
 
 //for raptor codes
 // SSN (1 char) + Payload (4 char)
-#define OOK_SYMBOLS_LEN 80
+// #define OOK_SYMBOLS_LEN 80
 #define MANCHESTER_SYMBOLS_LEN (OOK_SYMBOLS_LEN/2)
 
 

@@ -45,5 +45,8 @@ uint8_t PHY_demoluate_OOK_spinal(const uint8_t *buffer, uint16_t *start_index, c
 uint8_t PHY_demoluate_OOK_SpinalV2(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer);
 uint8_t PHY_demoluate_OOK_Ver2(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer);
 uint8_t PHY_demodulate_OOK_Ver3(const uint8_t *buffer, const uint16_t length, uint8_t *mes_buffer);
+uint8_t PHY_demodulate_OOK_Ver4(const uint8_t *buffer, const uint16_t length, uint8_t *mes_buffer);
+
+void PHY_read_symbols_ver2(uint8_t *buffer, uint16_t length, const int PD_GPIO_NUM);
 
 #endif

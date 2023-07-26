@@ -6,14 +6,14 @@
 #ifndef TEST_CONSTANT_H
 #define TEST_CONSTANT_H
 
-#define MES_LENGTH 4  //MAX_LENGTH is 8, because UINT64_MAX is 8 bytes
+#define MES_LENGTH 8  //MAX_LENGTH is 8, because UINT64_MAX is 8 bytes
 
 //Spinalcodes parameters
 #define K 3 //<=3, or the heap will overlap.
 #define C 5
 #define B 4
 #define D 2 
-#define PASS 5
+#define PASS 1
 
 #define WAVEFRONT_MAX B*(1<<K)*(1<<K)
 #define SUBTREES_MAX B*(1<<K)
