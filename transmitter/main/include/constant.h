@@ -6,6 +6,25 @@
 #ifndef TEST_CONSTANT_H
 #define TEST_CONSTANT_H
 
+
+
+/* Parameters for LED Phisycal Layer*/
+#define GPIO_LEFT_LIGHT 26
+#define GPIO_RIGHT_LIGHT 27
+
+#define  FRAME_HEADER "11110000"
+
+#define CHAR_PER_FRAME 4 // each physical frame has 4 chars, 32 bits
+
+
+// #define TRANSMIT_PERIOD 50  //20KHz
+// #define TRANSMIT_PERIOD 25  //40KHz
+// #define TRANSMIT_PERIOD 16  //60KHz
+#define TRANSMIT_PERIOD 12  //80KHz
+// #define TRANSMIT_PERIOD 10 // 100KHz not useful
+
+/* Parameters for LED Phisycal Layer*/
+
 #define MES_LENGTH 8  //MAX_LENGTH is 8, because UINT64_MAX is 8 bytes
 
 //Spinalcodes parameters

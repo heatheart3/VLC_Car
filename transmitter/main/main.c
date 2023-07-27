@@ -37,28 +37,8 @@ void app_main(void)
     gpio_set_level(GPIO_RIGHT_LIGHT, 1);
     while (1)
     {
-        // test_get_header();
         // test_square_wave(); 
         // test_10_1100();
-        // test0_transmit_nonencode_ver2("IloveSCU");
-        // test0_transmit_nonencode_ver4("IloveSCUSCUlovesme123987howaboutvehicletalk!it'sreallycooldon92outhinkis912889joixzcvjxocjv98xcvxjcivoj0v9cxzjvxzcv9xzvxcjv9xc02");
-
-        // test0_transmit_nonencode_ver2(BYTE8);
-        // 8 bytes
-        // test0_transmit_nonencode_ver4("IloveSCU");
-
-        // 16 bytes
-        // test0_transmit_nonencode_ver4("IloveSCUSCUloveI");
-        
-        // 32 bytes
-        // test0_transmit_nonencode_ver4("IloveSCUSCUloveI12345678HAHAsu~~");
-
-        // test0_transmit_nonencode_ver4(BYTE128);
-        // test1_transmit_spinal_ver2("IloveSCU");
-        // test1_transmit_spinal_ver3("IloveSCU");
-        // test1_transmit_spinal_ver4(BYTE8);
-    //     // test2_transmit_allinone();
-
 
         // test_transmit_raptor();
         test_transmit_original(BYTE8);

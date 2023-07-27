@@ -14,19 +14,19 @@
 #include <string.h>
 #include <sys/time.h>
 
-void test0_transmit_nonencode(const char* mes);
-void test0_transmit_nonencode_ver2(const char *mes);
-
-void test1_transmit_spinal(const char* mes);
-void test1_transmit_spinal_ver2(const char *mes);
-
-void test2_transmit_allinone();
-
+/**
+* @brief: get a simple square wave
+*/
 void test_square_wave();
+/**
+* @brief: get a simple "101100" continue wave, mainly for OOK testing
+*/
 void test_10_1100();
-void test_get_header();
 
+/**
+* @brief: transmit original ascii data, without any encoding.
+*/
+void test_transmit_original(const char* mes);
 
 void test_transmit_raptor();
-void test_transmit_original(const char* mes);
 #endif
