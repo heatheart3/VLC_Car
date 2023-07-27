@@ -4,7 +4,9 @@ static uint8_t mes_buffer[OOK_SYMBOLS_LEN];
 static uint8_t spinal_mes_buffer[PASS_LENGTH];
 static uint8_t spinal_pass_counter = 0;
 static uint8_t manchester_symbols[MANCHESTER_SYMBOLS_LEN];
-static uint8_t ascii_mes[MES_LENGTH];
+static uint8_t ascii_mes[PACKET_LENGTH];
+static uint8_t original_mes[MES_LENGTH];
+static uint16_t ssn_counter=0;
 
 void test_print_PHY_symbols_buffer(uint8_t *buffer, uint32_t length)
 {
@@ -17,7 +19,7 @@ void test_print_PHY_symbols_buffer(uint8_t *buffer, uint32_t length)
 
 void test_get_ASCII(const uint8_t *symbols, uint8_t *ch)
 {
-    for (int i = 0; i < MES_LENGTH; i++)
+    for (int i = 0; i < PACKET_LENGTH; i++)
     {
         for (int j = 0; j < 8; j++)
         {
@@ -66,7 +68,7 @@ void test0_get_packet(uint8_t *symbols_buffer, uint32_t symbols_length)
     //             printf("------END-------\n");
     //             pass_counter = 0;
     //         }
-    //         memset(ascii_mes, 0, MES_LENGTH * sizeof(uint8_t));
+    //         memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
     //         memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
     //     }
     // }
@@ -76,7 +78,7 @@ uint32_t test0_get_packet_ver2(uint8_t *symbols_buffer, uint32_t symbols_length)
 {
     uint32_t ret = 0;
     // 1. init the intermediate buffer
-    memset(ascii_mes, 0, MES_LENGTH * sizeof(uint8_t));
+    memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
     memset(manchester_symbols, 0, MANCHESTER_SYMBOLS_LEN * sizeof(uint8_t));
     memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
     if (PHY_demodulate_OOK_Ver3(symbols_buffer, symbols_length, mes_buffer))
@@ -87,7 +89,7 @@ uint32_t test0_get_packet_ver2(uint8_t *symbols_buffer, uint32_t symbols_length)
   
         // printf("T,%lld\n", e_count - s_count);
 
-        for (int j = 0; j < MES_LENGTH; j++)
+        for (int j = 0; j < PACKET_LENGTH; j++)
         {
             printf("%d,", ascii_mes[j]);
         }
@@ -100,7 +102,7 @@ uint32_t test0_get_packet_ver3(uint8_t *symbols_buffer, uint32_t symbols_length)
 {
     uint32_t ret = 0;
     // 1. init the intermediate buffer
-    memset(ascii_mes, 0, MES_LENGTH * sizeof(uint8_t));
+    memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
     memset(manchester_symbols, 0, MANCHESTER_SYMBOLS_LEN * sizeof(uint8_t));
     memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
 
@@ -110,7 +112,7 @@ uint32_t test0_get_packet_ver3(uint8_t *symbols_buffer, uint32_t symbols_length)
   
         // printf("T,%lld\n", e_count - s_count);
 
-        for (int j = 0; j < MES_LENGTH; j++)
+        for (int j = 0; j < PACKET_LENGTH; j++)
         {
             printf("%c", ascii_mes[j]);
         }
@@ -139,12 +141,12 @@ void test1_get_packet_spinal(uint8_t *symbols_buffer, uint32_t symbols_length)
             {
                 SpinalDecode(spinal_mes_buffer, ascii_mes);
                 spinal_pass_counter = 0;
-                for (int j = 0; j < MES_LENGTH; j++)
+                for (int j = 0; j < PACKET_LENGTH; j++)
                 {
                     printf("%d,", ascii_mes[j]);
                 }
                 printf("\n");
-                memset(ascii_mes, 0, MES_LENGTH * sizeof(uint8_t));
+                memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
             }
             memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
         }
@@ -164,7 +166,7 @@ uint32_t test1_get_packet_spinal_ver2(uint8_t *symbols_buffer, uint32_t symbols_
             // }
             // printf("\n");
             PHY_decode_spinal(mes_buffer, ascii_mes);
-            // for (int j = 0; j < MES_LENGTH; j++)
+            // for (int j = 0; j < PACKET_LENGTH; j++)
             // {
             //     printf("%d,", ascii_mes[j]);
             // }
@@ -173,7 +175,7 @@ uint32_t test1_get_packet_spinal_ver2(uint8_t *symbols_buffer, uint32_t symbols_
             {
                 ret++;
             }
-            memset(ascii_mes, 0, MES_LENGTH * sizeof(uint8_t));
+            memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
             memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
         }
     }
@@ -185,7 +187,7 @@ uint32_t test1_get_packet_spinal_ver3(uint8_t *symbols_buffer, uint32_t symbols_
 {
      uint32_t ret = 0;
     // 1. init the intermediate buffer
-    memset(ascii_mes, 0, MES_LENGTH * sizeof(uint8_t));
+    memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
     memset(spinal_mes_buffer,0,SPINE_LENGTH*PASS*sizeof(uint8_t));
 
         decode_OOK(&symbols_buffer[4],spinal_mes_buffer);
@@ -199,7 +201,7 @@ uint32_t test1_get_packet_spinal_ver3(uint8_t *symbols_buffer, uint32_t symbols_
   
         // printf("T,%lld\n", e_count - s_count);
 
-        for (int j = 0; j < MES_LENGTH; j++)
+        for (int j = 0; j < PACKET_LENGTH; j++)
         {
             printf("%d,", ascii_mes[j]);
         }
@@ -234,7 +236,7 @@ void test2_get_overall_latency(uint8_t *symbols_buffer, uint32_t symbols_length,
             {
                 s_error_count = s_count;
             }
-            memset(ascii_mes, 0, MES_LENGTH);
+            memset(ascii_mes, 0, PACKET_LENGTH);
             memset(mes_buffer, 0, OOK_SYMBOLS_LEN);
         }
     }
@@ -244,7 +246,7 @@ void test_get_raptor(uint8_t *symbols_buffer, uint32_t symbols_length)
 {
 
     // 1. init the intermediate buffer
-    memset(ascii_mes, 0, MES_LENGTH * sizeof(uint8_t));
+    memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
     memset(manchester_symbols, 0, MANCHESTER_SYMBOLS_LEN * sizeof(uint8_t));
     memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
 
@@ -259,11 +261,23 @@ void test_get_raptor(uint8_t *symbols_buffer, uint32_t symbols_length)
         test_get_ASCII(manchester_symbols, ascii_mes);
         ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &e_count));
 
+        // printf("T,%lld\n", e_count - s_count);
+
         // 5. output the symbols
-        for (int j = 0; j < MES_LENGTH; j++)
+        if(ascii_mes[0]==ssn_counter)
         {
-            printf("%d ", ascii_mes[j]);
+            memcpy(&original_mes[ssn_counter*4],&ascii_mes[1],4*sizeof(uint8_t));
+            ssn_counter++;
         }
-        printf("\n");
+        if(ssn_counter>=2)
+        {
+            for(int i=0;i<8;i++)
+            {
+                printf("%c",original_mes[i]);
+            }
+            printf("\n");
+            ssn_counter=0;
+            memset(original_mes,0,8*sizeof(uint8_t));
+        }
     }
 }

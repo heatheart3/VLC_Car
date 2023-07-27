@@ -28,5 +28,5 @@ void test_get_header();
 
 
 void test_transmit_raptor();
-
+void test_transmit_original(const char* mes);
 #endif

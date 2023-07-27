@@ -12,7 +12,11 @@
 #define  MES_HEADER "11110000"
 
 
-#define TRANSMIT_PERIOD 25 //60KHz
+// #define TRANSMIT_PERIOD 50  //20KHz
+// #define TRANSMIT_PERIOD 25  //40KHz
+// #define TRANSMIT_PERIOD 16  //60KHz
+#define TRANSMIT_PERIOD 12  //80KHz
+// #define TRANSMIT_PERIOD 10 // 100KHz not useful
 
 
 /**

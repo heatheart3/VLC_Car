@@ -11,10 +11,7 @@
  * @brief  It's similar to sampling rate.
  */
 #define SAMPLING_DURATION 2
-#define SIGNAL_DURATION 25
-
-
-
+#define SIGNAL_DURATION 12
 
 /**
  * @brief Spinal Code parameters
@@ -28,9 +25,12 @@
 /**
  * @brief  Spianl Code Decoder intermediate parameters
  */
-#define MES_LENGTH 8 //MAX_LENGTH is 8, because UINT64_MAX is 8 bytes
+// #define MES_LENGTH 8 //MAX_LENGTH is 8, because UINT64_MAX is 8 bytes
 //for raptor code
-// #define MES_LENGTH 5
+
+
+#define PACKET_LENGTH 5
+#define MES_LENGTH 8
 
 #if (D==1)
 #define WAVEFRONT_MAX B*(1<<(K*(D)))*(1<<(K*(D)))
@@ -39,7 +39,7 @@
 #define WAVEFRONT_MAX B*(1<<(K*(D-1)))*(1<<(K*(D-1)))
 #define SUBTREES_MAX B*(1<<(K*(D-1)))
 #endif
-#define SPINE_LENGTH ((8*MES_LENGTH+K-1)/K)
+#define SPINE_LENGTH ((8*PACKET_LENGTH+K-1)/K)
 #define PASS_LENGTH (SPINE_LENGTH*PASS)
 
 
@@ -53,21 +53,53 @@
 // #define SINGLE_HIGH_THRES 2
 // #define SINGLE_LOW_THRES 2
 
+/******** 20KHz Sampling Rate 2 ********/
+// #define HEADER_THRES 80
+// #define HEADER_LOW_THRES 100
+// #define DOUBLE_HIGH_THRES 38
+// #define DOUBLE_LOW_THRES 38
+// #define SINGLE_HIGH_THRES 2
+// #define SINGLE_LOW_THRES 2
 
 /******** 40KHz Sampling Rate 2 ********/
-#define HEADER_THRES 37
-#define HEADER_LOW_THRES 54
-#define DOUBLE_HIGH_THRES 18
-#define DOUBLE_LOW_THRES 18
+// #define HEADER_THRES 37
+// #define HEADER_LOW_THRES 54
+// #define DOUBLE_HIGH_THRES 18
+// #define DOUBLE_LOW_THRES 18
+// #define SINGLE_HIGH_THRES 2
+// #define SINGLE_LOW_THRES 2
+
+/******** 60KHz Sampling Rate 2 ********/
+// #define HEADER_THRES 24
+// #define HEADER_LOW_THRES 35
+// #define DOUBLE_HIGH_THRES 11
+// #define DOUBLE_LOW_THRES 11
+// #define SINGLE_HIGH_THRES 2
+// #define SINGLE_LOW_THRES 2
+
+/******** 80KHz Sampling Rate 2 ********/
+#define HEADER_THRES 18
+#define HEADER_LOW_THRES 25
+#define DOUBLE_HIGH_THRES 9
+#define DOUBLE_LOW_THRES 9
 #define SINGLE_HIGH_THRES 2
 #define SINGLE_LOW_THRES 2
 
+/******** 100KHz Sampling Rate 2 ********/
+// #define HEADER_THRES 18
+// #define HEADER_LOW_THRES 25
+// #define DOUBLE_HIGH_THRES 9
+// #define DOUBLE_LOW_THRES 9
+// #define SINGLE_HIGH_THRES 2
+// #define SINGLE_LOW_THRES 2
+
+
 // #define OOK_SYMBOLS_LEN (SPINE_LENGTH*C*2)
-#define OOK_SYMBOLS_LEN 128
+// #define OOK_SYMBOLS_LEN 128
 
 //for raptor codes
 // SSN (1 char) + Payload (4 char)
-// #define OOK_SYMBOLS_LEN 80
+#define OOK_SYMBOLS_LEN 80
 #define MANCHESTER_SYMBOLS_LEN (OOK_SYMBOLS_LEN/2)
 
 

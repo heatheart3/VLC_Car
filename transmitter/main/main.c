@@ -43,7 +43,7 @@ void app_main(void)
         // test0_transmit_nonencode_ver2("IloveSCU");
         // test0_transmit_nonencode_ver4("IloveSCUSCUlovesme123987howaboutvehicletalk!it'sreallycooldon92outhinkis912889joixzcvjxocjv98xcvxjcivoj0v9cxzjvxzcv9xzvxcjv9xc02");
 
-        test0_transmit_nonencode_ver2(BYTE8);
+        // test0_transmit_nonencode_ver2(BYTE8);
         // 8 bytes
         // test0_transmit_nonencode_ver4("IloveSCU");
 
@@ -61,5 +61,6 @@ void app_main(void)
 
 
         // test_transmit_raptor();
+        test_transmit_original(BYTE8);
     }
 }
