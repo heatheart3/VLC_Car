@@ -200,3 +200,22 @@ void network_decode(uint8_t * NC, uint8_t* symbols)
     }
 
 }
+
+void vGetASCII(const uint8_t* symbols, uint8_t* ch)
+{
+      for (int i = 0; i < FRAME_LENGTH; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (symbols[i * 8 + j] == 0)
+            {
+                ch[i] = ch[i] << 1;
+            }
+            else
+            {
+                ch[i] = ch[i] << 1;
+                ch[i] = ch[i] | 0x01;
+            }
+        }
+    }
+}

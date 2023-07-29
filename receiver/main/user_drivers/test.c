@@ -1,12 +1,14 @@
 #include "./include/test.h"
 
 static uint8_t mes_buffer[OOK_SYMBOLS_LEN];
+static uint8_t manchester_symbols[MANCHESTER_SYMBOLS_LEN];
+static uint8_t ascii_mes[FRAME_LENGTH];
+
 static uint8_t spinal_mes_buffer[PASS_LENGTH];
 static uint8_t spinal_pass_counter = 0;
-static uint8_t manchester_symbols[MANCHESTER_SYMBOLS_LEN];
-static uint8_t ascii_mes[PACKET_LENGTH];
+
 static uint8_t original_mes[MES_LENGTH];
-static uint16_t ssn_counter=0;
+static uint16_t ssn_counter = 0;
 
 void test_print_PHY_symbols_buffer(uint8_t *buffer, uint32_t length)
 {
@@ -17,267 +19,90 @@ void test_print_PHY_symbols_buffer(uint8_t *buffer, uint32_t length)
     printf("-1\n");
 }
 
-void test_get_ASCII(const uint8_t *symbols, uint8_t *ch)
+void test_get_frame(uint8_t *symbols_buffer, uint32_t symbols_length)
 {
-    for (int i = 0; i < PACKET_LENGTH; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            if (symbols[i * 8 + j] == 0)
-            {
-                ch[i] = ch[i] << 1;
-            }
-            else
-            {
-                ch[i] = ch[i] << 1;
-                ch[i] = ch[i] | 0x01;
-            }
-        }
-    }
-}
-
-void test0_get_packet(uint8_t *symbols_buffer, uint32_t symbols_length)
-{
-    // for (uint16_t i = 0; i < symbols_length; i++)
-    // {
-    //     if (PHY_demoluate_OOK(symbols_buffer, &i, symbols_length, mes_buffer))
-    //     {
-    //         PHY_decode_manchester(mes_buffer, manchester_symbols);
-    //         test_get_ASCII(manchester_symbols, ascii_mes);
-
-    //         if (ascii_mes[0] == 'A')
-    //         {
-    //             overflow_symbol_counter = 0;
-    //             decode_right_conuter = 0;
-    //         }
-    //         else if (ascii_mes[0] == 'E')
-    //         {
-    //             // printf("%ld,%ld\n",decode_right_conuter,overflow_symbol_counter);
-    //             // output_buffer[pass_counter] = decode_right_conuter;
-    //             // pass_counter++;
-    //             decode_right_conuter = 0;
-    //             overflow_symbol_counter = 0;
-    //         }
-
-    //         if (pass_counter >= 10)
-    //         {
-    //             for (int i = 0; i < 10; i++)
-    //             {
-    //                 // printf("%d\n", output_buffer[i]);
-    //             }
-    //             printf("------END-------\n");
-    //             pass_counter = 0;
-    //         }
-    //         memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
-    //         memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
-    //     }
-    // }
-}
-
-uint32_t test0_get_packet_ver2(uint8_t *symbols_buffer, uint32_t symbols_length)
-{
-    uint32_t ret = 0;
     // 1. init the intermediate buffer
-    memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
-    memset(manchester_symbols, 0, MANCHESTER_SYMBOLS_LEN * sizeof(uint8_t));
-    memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
-    if (PHY_demodulate_OOK_Ver3(symbols_buffer, symbols_length, mes_buffer))
-    {
-        PHY_decode_manchester(mes_buffer, manchester_symbols);
-        test_get_ASCII(manchester_symbols, ascii_mes);
-        ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &e_count));
-  
-        // printf("T,%lld\n", e_count - s_count);
-
-        for (int j = 0; j < PACKET_LENGTH; j++)
-        {
-            printf("%d,", ascii_mes[j]);
-        }
-        printf("\n");
-    }
-    return ret;
-}
-
-uint32_t test0_get_packet_ver3(uint8_t *symbols_buffer, uint32_t symbols_length)
-{
-    uint32_t ret = 0;
-    // 1. init the intermediate buffer
-    memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
-    memset(manchester_symbols, 0, MANCHESTER_SYMBOLS_LEN * sizeof(uint8_t));
-    memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
-
-       PHY_decode_manchester(&symbols_buffer[4], manchester_symbols);
-        test_get_ASCII(manchester_symbols, ascii_mes);
-        ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &e_count));
-  
-        // printf("T,%lld\n", e_count - s_count);
-
-        for (int j = 0; j < PACKET_LENGTH; j++)
-        {
-            printf("%c", ascii_mes[j]);
-        }
-        printf("\n");
-
-    return ret;
-}
-
-void test1_get_packet_spinal(uint8_t *symbols_buffer, uint32_t symbols_length)
-{
-    for (uint16_t i = 0; i < symbols_length; i++)
-    {
-        if (PHY_demoluate_OOK_Ver2(symbols_buffer, &i, symbols_length, mes_buffer))
-        {
-            // for(int i=0;i<OOK_SYMBOLS_LEN;i++)
-            // {
-            //     printf("%d",mes_buffer[i]);
-            // }
-            // printf("\n");
-            if (spinal_pass_counter < PASS)
-            {
-                decode_OOK(mes_buffer, &spinal_mes_buffer[spinal_pass_counter * SPINE_LENGTH]);
-                spinal_pass_counter++;
-            }
-            if (spinal_pass_counter == PASS) // decode spinal
-            {
-                SpinalDecode(spinal_mes_buffer, ascii_mes);
-                spinal_pass_counter = 0;
-                for (int j = 0; j < PACKET_LENGTH; j++)
-                {
-                    printf("%d,", ascii_mes[j]);
-                }
-                printf("\n");
-                memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
-            }
-            memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
-        }
-    }
-}
-
-uint32_t test1_get_packet_spinal_ver2(uint8_t *symbols_buffer, uint32_t symbols_length)
-{
-    uint32_t ret = 0;
-    for (uint16_t i = 0; i < symbols_length; i++)
-    {
-        if (PHY_demoluate_OOK(symbols_buffer, &i, symbols_length, mes_buffer))
-        {
-            // for(int i=0;i<OOK_SYMBOLS_LEN;i++)
-            // {
-            //     printf("%d",mes_buffer[i]);
-            // }
-            // printf("\n");
-            PHY_decode_spinal(mes_buffer, ascii_mes);
-            // for (int j = 0; j < PACKET_LENGTH; j++)
-            // {
-            //     printf("%d,", ascii_mes[j]);
-            // }
-            // printf("\n");
-            if (ascii_mes[0] == 70 && ascii_mes[1] == 111 && ascii_mes[2] == 49 && ascii_mes[3] == 33)
-            {
-                ret++;
-            }
-            memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
-            memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
-        }
-    }
-    return ret;
-}
-
-
-uint32_t test1_get_packet_spinal_ver3(uint8_t *symbols_buffer, uint32_t symbols_length)
-{
-     uint32_t ret = 0;
-    // 1. init the intermediate buffer
-    memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
-    memset(spinal_mes_buffer,0,SPINE_LENGTH*PASS*sizeof(uint8_t));
-
-        decode_OOK(&symbols_buffer[4],spinal_mes_buffer);
-        for(int i=0;i<SPINE_LENGTH*PASS;i++)
-        {
-            printf("%d ",spinal_mes_buffer[i]);
-        }
-        printf("\n");
-        SpinalDecode(spinal_mes_buffer, ascii_mes);
-        ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &e_count));
-  
-        // printf("T,%lld\n", e_count - s_count);
-
-        for (int j = 0; j < PACKET_LENGTH; j++)
-        {
-            printf("%d,", ascii_mes[j]);
-        }
-        printf("\n");
-
-    return ret;
-}
-
-void test2_get_overall_latency(uint8_t *symbols_buffer, uint32_t symbols_length, uint8_t *symbolsB)
-{
-    for (uint16_t i = 0; i < symbols_length; i++)
-    {
-        if (PHY_demoluate_OOK(symbols_buffer, &i, symbols_length, mes_buffer))
-        {
-            // for(int j=0;j<OOK_SYMBOLS_LEN;j++)
-            // {
-            //     printf("%d",mes_buffer[j]);
-            // }
-            // printf("\n");
-            PHY_decode_allinone(mes_buffer, ascii_mes, symbolsB);
-            ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &e_count));
-            if (ascii_mes[0] == 'S' && ascii_mes[1] == 'C' && ascii_mes[2] == 'U' && ascii_mes[3] == '1')
-            {
-                if (s_error_count != 0)
-                    printf("N,%lld\n", e_count - s_error_count);
-                else
-                    printf("Y,%lld\n", e_count - s_count);
-
-                s_error_count = 0;
-            }
-            else if (s_error_count == 0)
-            {
-                s_error_count = s_count;
-            }
-            memset(ascii_mes, 0, PACKET_LENGTH);
-            memset(mes_buffer, 0, OOK_SYMBOLS_LEN);
-        }
-    }
-}
-
-void test_get_raptor(uint8_t *symbols_buffer, uint32_t symbols_length)
-{
-
-    // 1. init the intermediate buffer
-    memset(ascii_mes, 0, PACKET_LENGTH * sizeof(uint8_t));
+    memset(ascii_mes, 0, FRAME_LENGTH * sizeof(uint8_t));
     memset(manchester_symbols, 0, MANCHESTER_SYMBOLS_LEN * sizeof(uint8_t));
     memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
 
     // 2. demodulate
-    if (PHY_demodulate_OOK_Ver3(symbols_buffer, symbols_length, mes_buffer))
+    if (PHY_demodulate_OOK(symbols_buffer, symbols_length, mes_buffer))
     {
 
         // 3. decode the manchester code, the decoded message will be stored in the manchester_symbols
         PHY_decode_manchester(mes_buffer, manchester_symbols);
 
         // 4. get CHAR from bits in binary
-        test_get_ASCII(manchester_symbols, ascii_mes);
+        vGetASCII(manchester_symbols, ascii_mes);
         ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &e_count));
 
         // printf("T,%lld\n", e_count - s_count);
 
         // 5. output the symbols
-        if(ascii_mes[0]==ssn_counter)
+        printf("%d,", ascii_mes[0]);
+        for (int i = 1; i < FRAME_LENGTH; i++)
         {
-            memcpy(&original_mes[ssn_counter*4],&ascii_mes[1],4*sizeof(uint8_t));
+            printf("%d,", ascii_mes[i]);
+        }
+        printf("\n");
+    }
+}
+
+void test_get_original_mes(uint8_t *symbols_buffer, uint32_t symbols_length)
+{
+
+    // 1. init the intermediate buffer
+    memset(ascii_mes, 0, FRAME_LENGTH * sizeof(uint8_t));
+    memset(manchester_symbols, 0, MANCHESTER_SYMBOLS_LEN * sizeof(uint8_t));
+    memset(mes_buffer, 0, OOK_SYMBOLS_LEN * sizeof(uint8_t));
+
+    // 2. demodulate
+    if (PHY_demodulate_OOK(symbols_buffer, symbols_length, mes_buffer))
+    {
+
+        used_frame++;
+
+        // 3. decode the manchester code, the decoded message will be stored in the manchester_symbols
+        PHY_decode_manchester(mes_buffer, manchester_symbols);
+
+        // 4. get CHAR from bits in binary
+        vGetASCII(manchester_symbols, ascii_mes);
+
+        // printf("T,%lld\n", e_count - s_count);
+
+        // 5. output the symbols
+
+        if (ascii_mes[0] == ssn_counter)
+        {
+            memcpy(&original_mes[ssn_counter * CHAR_PER_FRAME], &ascii_mes[1], CHAR_PER_FRAME * sizeof(uint8_t));
             ssn_counter++;
         }
-        if(ssn_counter>=2)
+        if (ssn_counter >= (MES_LENGTH / CHAR_PER_FRAME))
         {
-            for(int i=0;i<8;i++)
+
+            if (SHOW_LATENCY)
             {
-                printf("%c",original_mes[i]);
+                // ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &e_count));
+                 for (int i = 0; i < (MES_LENGTH); i++)
+                {
+                    printf("%d", original_mes[i]);
+                }
+                printf(",");
+                printf("%lld\n", used_frame);
+                // timer_isr_flag = 0;
+                used_frame=0;
             }
-            printf("\n");
-            ssn_counter=0;
-            memset(original_mes,0,8*sizeof(uint8_t));
+            else
+            {
+                for (int i = 0; i < (MES_LENGTH); i++)
+                {
+                    printf("%c", original_mes[i]);
+                }
+                printf("\n");
+            }
+            ssn_counter = 0;
+            memset(original_mes, 0, MES_LENGTH* sizeof(uint8_t));
         }
     }
 }

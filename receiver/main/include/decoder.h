@@ -27,5 +27,9 @@ void decode_OOK(const uint8_t *OOK, uint8_t *symbols);
 
 void network_decode(uint8_t * NC, uint8_t* symbols);
 
+/**
+ * @brief get ASCII from bits stream.
+ */
+void vGetASCII(const uint8_t* symbols, uint8_t* ch);
 
 #endif

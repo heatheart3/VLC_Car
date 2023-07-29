@@ -8,19 +8,13 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "freertos/message_buffer.h"
-
-
 #define PD_GPIO_NUM 35
 #define SYMBOLS_BUFFER_SIZE 6000
-#define SYMBOLS_BUFFER_SIZE2 600
-
-uint8_t overflow_symbol_counter=0;
-uint8_t decode_right_conuter=0;
-
 
 uint64_t s_count=0;
 uint64_t e_count=0;
 uint64_t s_error_count=0;
+uint64_t used_frame=0;
 gptimer_handle_t gptimer =NULL;
 
 
@@ -45,9 +39,6 @@ void vtask_read(void *ptParam)
             xMessageBufferReset(MessageBuffer);
             printf("-2\n");
         }
-        // printf("-------------\n");
-        // printf("send_bytes:%d\n",send_bytes);
-        // vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 
@@ -56,16 +47,9 @@ void vtask_operate(void *ptParam)
 
     uint8_t symbols_buffer[SYMBOLS_BUFFER_SIZE2];
     int recv_bytes=0;
-    uint32_t Rcounter=0;
-    uint32_t tmp=0;
     while(1)
     {
-        // if(timer_isr_flag)
-        // {
-        //     printf("%ld\n",Rcounter);
-        //     timer_isr_flag=false;
-        //     Rcounter=0;
-        // }
+
 
         memset(symbols_buffer,0,SYMBOLS_BUFFER_SIZE2*sizeof(uint8_t));
         recv_bytes=xMessageBufferReceive(MessageBuffer, 
@@ -78,19 +62,8 @@ void vtask_operate(void *ptParam)
         //     printf("%d\n",symbols_buffer[i]);
         // }
         // printf("-1\n");
-
-        test_get_raptor(symbols_buffer,SYMBOLS_BUFFER_SIZE2);
-
-        // tmp=test0_get_packet_ver3(symbols_buffer, SYMBOLS_BUFFER_SIZE2);
-        // test0_get_packet_ver2(symbols_buffer, SYMBOLS_BUFFER_SIZE2);
-        // test1_get_packet_spinal(symbols_buffer,SYMBOLS_BUFFER_SIZE2);
-        // test1_get_packet_spinal_ver3(symbols_buffer,SYMBOLS_BUFFER_SIZE2);
-        // Rcounter+=tmp;
-        // test_print_PHY_symbols_buffer(symbols_buffer, SYMBOLS_BUFFER_SIZE);
-        // printf("-----------------\n");
-        // printf("recv_bytes:%d\n",recv_bytes);
-        // vTaskDelay(3000 / portTICK_PERIOD_MS);
-
+        test_get_frame(symbols_buffer,SYMBOLS_BUFFER_SIZE2);
+        // test_get_original_mes(symbols_buffer,SYMBOLS_BUFFER_SIZE2);
     }
 }
 

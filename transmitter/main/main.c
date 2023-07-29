@@ -23,12 +23,12 @@
 
 
 #define BYTE8 "IloveSCU"
-#define BYTE16 "IloveSCUSCUloveI"
-#define BYTE32 "IloveSCUSCUloveI12345678HAHAsu~~"
-#define BYTE64 "IloveSCUSCUloveI12345678HAHAsu~~8848royal!!brandnew!!xdflopo;].;"
-#define BYTE128 "IloveSCUSCUloveI12345678HAHAsu~~8848royal!!brandnew!!xdflopo;].;IloveSCUSCUloveI12345678HAHAsu~~8848royal!!brandnew!!xdflopo;].;"
-#define BYTE256
-#define BYTE512
+
+
+
+#define BYTE50  "abcdefghijklmnopqrstuvwxyz123,abcdefghijklmnopqrst"
+#define BYTE100 "abcdefghijklmnopqrstuvwxyz123,abcdefghijklmnopqrstuvwxyz123,abcdefghijklmnopqrstuvwxyz123,0123456789"
+#define BYTE204 "abcdefghijklmnopqrstuvwxyzXabcdefghijklmnopqrstuvwxyzXabcdefghijklmnabcdefghijklmnopqrstuvwxyzXabcdefghijklmnopqrstuvwxyzXabcdefghijklmnabcdefghijklmnopqrstuvwxyzXabcdefghijklmnopqrstuvwxyzXabcdefghijklmn"
 
 void app_main(void)
 {
@@ -41,6 +41,6 @@ void app_main(void)
         // test_10_1100();
 
         // test_transmit_raptor();
-        test_transmit_original(BYTE8);
+        test_transmit_original(BYTE204);
     }
 }

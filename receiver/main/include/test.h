@@ -8,29 +8,27 @@
 #include "./include/constant.h"
 #include <string.h>
 
-extern uint8_t decode_right_conuter;
-extern uint8_t overflow_symbol_counter;
 
+extern bool timer_isr_flag;
 extern uint64_t s_count;
 extern uint64_t e_count;
 extern uint64_t s_error_count;
 extern gptimer_handle_t gptimer;
 
+extern uint64_t used_frame;
+
+/**
+ * @brief print all the OOK signals to the screen
+ */
 void test_print_PHY_symbols_buffer(uint8_t *buffer, uint32_t length);
 
-void test_get_ASCII(const uint8_t* symbols, uint8_t* ch);
 
-void test0_get_packet(uint8_t* symbols_buffer,uint32_t symbols_length);
-uint32_t test0_get_packet_ver2(uint8_t *symbols_buffer, uint32_t symbols_length);
-
-void test1_get_packet_spinal(uint8_t* symbols_buffer,uint32_t symbols_length);
-uint32_t test1_get_packet_spinal_ver2(uint8_t *symbols_buffer, uint32_t symbols_length);
-
-uint32_t test1_get_packet_spinal_ver3(uint8_t *symbols_buffer, uint32_t symbols_length);
-void  test2_get_overall_latency(uint8_t *symbols_buffer, uint32_t symbols_length,uint8_t* symbolsB);
+/**
+ * @brief get the original frame from PHY symbols buffer
+ */
+void test_get_frame(uint8_t* symbols_buffer,uint32_t symbols_length);
 
 
-void test_get_raptor(uint8_t* symbols_buffer,uint32_t symbols_length);
+void test_get_original_mes(uint8_t* symbols_buffer,uint32_t symbols_length);
 
-uint32_t test0_get_packet_ver3(uint8_t *symbols_buffer, uint32_t symbols_length);
 #endif

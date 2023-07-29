@@ -7,8 +7,7 @@
 #include "esp32/rom/ets_sys.h"
 #include "driver/gpio.h"
 
-extern  uint8_t overflow_symbol_counter;
-
+extern bool timer_isr_flag;
 extern uint64_t s_count;
 extern uint64_t e_count;
 extern gptimer_handle_t gptimer;
@@ -22,31 +21,43 @@ void PHY_gpio_config(const int gpio_num);
 
 
 /**
- * @brief Reads a buffer of symbols from a GPIO pin
+ * @brief Reads a buffer of symbols from a GPIO pin, only symbols after frame header will be read
  * @param buffer: pointer to the buffer where the symbols will be stored
  * @param length: number of symbols to be read
  */
 void PHY_read_symbols(uint8_t *buffer, uint16_t length,const int PD_GPIO_NUM);
+
+/**
+ * @brief Reads a buffer of symbols from a GPIO pin, but all symbols will be read
+ */
 void PHY_easy_read_symbols(uint8_t *buffer, uint16_t length, const int PD_GPIO_NUM);
 
-uint8_t PHY_demoluate_OOK(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer);
-
+/**
+ * @brief Decode data from manchester encoding.
+ */
 void PHY_decode_manchester(const uint8_t *symbols, uint8_t *mes);
 
+
+/**
+ * @brief Decode data from network encoding.
+ */
 void PHY_decode_networkcoding(const uint8_t *symbols, uint8_t *mes);
 
 
+/**
+ * @brief Decode data from spinal encoding.
+ * @param symbols: pointer to the spinal codes symbols, each array element is a symbol
+ * @param mes: pointer to the buffer where the decoded data will be stored
+ */
 void PHY_decode_spinal(const uint8_t *symbols, uint8_t *mes);
 
 
-void  PHY_decode_allinone(const uint8_t *symbols, uint8_t *mes,uint8_t* symbolsB);
-
-uint8_t PHY_demoluate_OOK_spinal(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer,uint8_t *header_length);
-uint8_t PHY_demoluate_OOK_SpinalV2(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer);
-uint8_t PHY_demoluate_OOK_Ver2(const uint8_t *buffer, uint16_t *start_index, const uint16_t length, uint8_t *mes_buffer);
-uint8_t PHY_demodulate_OOK_Ver3(const uint8_t *buffer, const uint16_t length, uint8_t *mes_buffer);
-uint8_t PHY_demodulate_OOK_Ver4(const uint8_t *buffer, const uint16_t length, uint8_t *mes_buffer);
-
-void PHY_read_symbols_ver2(uint8_t *buffer, uint16_t length, const int PD_GPIO_NUM);
-
+/**
+ * @brief Demodulate bits from OOK. Using up edge, down edge and counter threshold to determine the bit value.
+ * @param buffer: pointer to the buffer where the OOK singals buffer, which start at the last 4 bits of the header: "0000"(11110000)
+ * @param length: number of symbols to be demodulated
+ * @param mes_buffer: pointer to the buffer where the demodulated data will be stored
+ * @warning the bits shift error will happen because of the OOK demodulation method.
+ */
+uint8_t PHY_demodulate_OOK(const uint8_t *buffer, const uint16_t length, uint8_t *mes_buffer);
 #endif
