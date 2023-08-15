@@ -1,30 +1,36 @@
 #include "./include/test.h"
 
+
+void test_config(const int gpio_num)
+{
+    test_gpio_num = gpio_num;
+}
+
 void test_square_wave()
 {
-    gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-    ets_delay_us(TRANSMIT_PERIOD);
-    gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-    ets_delay_us(TRANSMIT_PERIOD);
+    gpio_set_level(test_gpio_num, 1);
+    ets_delay_us(SIGNAL_DURATION);
+    gpio_set_level(test_gpio_num, 0);
+    ets_delay_us(SIGNAL_DURATION);
 }
 
 void test_10_1100()
 {
     while (1)
     {
-        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-        ets_delay_us(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(test_gpio_num, 1);
+        ets_delay_us(SIGNAL_DURATION);
+        gpio_set_level(test_gpio_num, 0);
+        ets_delay_us(SIGNAL_DURATION);
 
-        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-        ets_delay_us(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-        ets_delay_us(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-        ets_delay_us(TRANSMIT_PERIOD);
-        gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-        ets_delay_us(TRANSMIT_PERIOD);
+        gpio_set_level(test_gpio_num, 1);
+        ets_delay_us(SIGNAL_DURATION);
+        gpio_set_level(test_gpio_num, 1);
+        ets_delay_us(SIGNAL_DURATION);
+        gpio_set_level(test_gpio_num, 0);
+        ets_delay_us(SIGNAL_DURATION);
+        gpio_set_level(test_gpio_num, 0);
+        ets_delay_us(SIGNAL_DURATION);
     }
 }
 
@@ -32,59 +38,40 @@ void test_10_1100()
 
 void test_transmit_original(const char* mes)
 {
-    // 1. 8 bits per char
-    uint16_t mes_length = strlen(mes);
 
-    // 1.the  MAX SSN, and if the reduant packet is not enough for 4,
-    // it'll not be transmitted.
-    //2. the max_ssn is up to 255
-    uint8_t max_ssn = mes_length/CHAR_PER_FRAME;
-    uint8_t need_add_up_packets = mes_length%CHAR_PER_FRAME; // no more packets, so need add zero.
+    //1. calculatethe max_ssn. Each frame has BYTES_PER_FRAME bytes.
+    // if the final packet is not enough for 4, "0" will be added to the end of the packet to make it 4 bytes as a frame.
+    uint16_t mes_length = strlen(mes);
+    uint8_t max_ssn = mes_length/BYTES_PER_FRAME;
+    uint8_t need_add_up_packets = mes_length%BYTES_PER_FRAME; // no more packets, so need add zero.
     if(need_add_up_packets!=0)
     {
         max_ssn++;
     }
-    // printf("max_ssn:%d\n",max_ssn);
+
+    char transmitted_frame[BYTES_PER_FRAME+1];
+    transmitted_frame[BYTES_PER_FRAME] = '\0';
+    uint8_t fptr=0;
     while (1)
     {
         for (uint8_t i = 0; i < max_ssn; i++)
         {
-            // printf("frame%d\n",i);
-            // 1. wait a little bit for the next frame
-            for(int j=0;j<60;j++)
+            fptr=0;
+            memset(transmitted_frame, 0, BYTES_PER_FRAME);
+            for (uint8_t j = 0; j < BYTES_PER_FRAME; j++)
             {
-                gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-                ets_delay_us(TRANSMIT_PERIOD);
-                gpio_set_level(GPIO_RIGHT_LIGHT,0);
-                ets_delay_us(TRANSMIT_PERIOD);
-            }
-
-            // 1. transmit HEADER
-            transmit_ook(FRAME_HEADER, GPIO_RIGHT_LIGHT);
-
-            // 2. transmit SSN
-            transmit_8bitz(i, GPIO_RIGHT_LIGHT);
-
-            //3. transmit Symbols
-            for (uint8_t j = 0; j < CHAR_PER_FRAME; j++)
-            {
-                // if the packet is not enough for 4, "0" data is sent
-                if((i*CHAR_PER_FRAME+j)>=mes_length)
+                if((i*BYTES_PER_FRAME+j)>=mes_length)
                 {
-                    transmit_8bitz(0, GPIO_RIGHT_LIGHT);
-                    // printf("0\n");
+                    transmitted_frame[fptr++] = '0';
                 }
                 else
                 {
-                    transmit_8bitz(mes[i * CHAR_PER_FRAME + j], GPIO_RIGHT_LIGHT);
-                    // printf("%c\n",mes[i * CHAR_PER_FRAME + j]);
+                    transmitted_frame[fptr++] = mes[i * BYTES_PER_FRAME + j];
                 }
             }
-
-            // 4. transmit the stop bit
-            gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-            ets_delay_us(TRANSMIT_PERIOD);
+            light_transmit_frame(transmitted_frame, i,test_gpio_num);
         }
+
     }
 }
 
@@ -371,8 +358,8 @@ void test_transmit_raptor()
     // it'll not be transmitted.
     //2. the max_ssn is up to 255
 
-    uint8_t max_ssn = raptor_coded_k / CHAR_PER_FRAME;
-    uint8_t need_add_up_packets = raptor_coded_k%CHAR_PER_FRAME; // no more packets, so need add zero.
+    uint8_t max_ssn = raptor_coded_k / BYTES_PER_FRAME;
+    uint8_t need_add_up_packets = raptor_coded_k%BYTES_PER_FRAME; // no more packets, so need add zero.
     if(need_add_up_packets!=0)
     {
         max_ssn++;
@@ -385,37 +372,37 @@ void test_transmit_raptor()
             // 1. wait a little bit for the next frame
             for(int j=0;j<60;j++)
             {
-                gpio_set_level(GPIO_RIGHT_LIGHT, 1);
-                ets_delay_us(TRANSMIT_PERIOD);
-                gpio_set_level(GPIO_RIGHT_LIGHT,0);
-                ets_delay_us(TRANSMIT_PERIOD);
+                gpio_set_level(test_gpio_num, 1);
+                ets_delay_us(SIGNAL_DURATION);
+                gpio_set_level(test_gpio_num,0);
+                ets_delay_us(SIGNAL_DURATION);
             }
 
             // 1. transmit HEADER
-            transmit_ook(FRAME_HEADER, GPIO_RIGHT_LIGHT);
+            transmit_ook(FRAME_HEADER, test_gpio_num);
 
             // 2. transmit SSN
-            transmit_8bitz(i, GPIO_RIGHT_LIGHT);
+            transmit_8bitz(i, test_gpio_num);
 
             //3. transmit Symbols
             for (uint8_t j = 0; j < packet_per_frame; j++)
             {
                 //   if the packet is not enough for 4, "0" data is sent
-                if((i*CHAR_PER_FRAME+j)>=raptor_coded_k)
+                if((i*BYTES_PER_FRAME+j)>=raptor_coded_k)
                 {
-                    transmit_8bitz(0, GPIO_RIGHT_LIGHT);
+                    transmit_8bitz(0, test_gpio_num);
                     // printf("0\n");
                 }
                 else
                 {
-                    transmit_8bitz(raptor_symbols[i * CHAR_PER_FRAME + j], GPIO_RIGHT_LIGHT);
-                    // printf("%c\n",mes[i * CHAR_PER_FRAME + j]);
+                    transmit_8bitz(raptor_symbols[i * BYTES_PER_FRAME + j], test_gpio_num);
+                    // printf("%c\n",mes[i * BYTES_PER_FRAME + j]);
                 }
             }
 
             // 4. transmit the stop bit
-            gpio_set_level(GPIO_RIGHT_LIGHT, 0);
-            ets_delay_us(TRANSMIT_PERIOD);
+            gpio_set_level(test_gpio_num, 0);
+            ets_delay_us(SIGNAL_DURATION);
         }
     }
 }

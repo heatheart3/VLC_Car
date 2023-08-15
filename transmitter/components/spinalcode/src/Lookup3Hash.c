@@ -2,7 +2,7 @@
 // Created by Administrator on 2023/6/19.
 //
 
-#include "./include/Lookup3Hash.h"
+#include "Lookup3Hash.h"
 #include<memory.h>
 
 static inline uint32_t rot(uint32_t x, int k)

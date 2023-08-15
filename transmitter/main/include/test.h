@@ -1,18 +1,18 @@
 #ifndef TEST_H
 #define TEST_H
 
+#include "light.h"
 
-#include "./include/constant.h"
-#include "./include/encoder.h"
-#include "./include/light.h"
+#define BYTES_PER_FRAME 4
+
+static int test_gpio_num = 0;
 
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
-#include<stdio.h>
-#include <string.h>
-#include <sys/time.h>
+/**
+ * @brief configure the test program:
+ * 1.  configure the GPIO pin
+ */
+void test_config(const int gpio_num);
 
 /**
 * @brief: get a simple square wave

@@ -162,6 +162,7 @@ uint8_t PHY_demodulate_OOK(const uint8_t *buffer, const uint16_t length, uint8_t
         }
     }
 
+    
 
     // 4. else return 0, but mainly this will not happen
     return 0;

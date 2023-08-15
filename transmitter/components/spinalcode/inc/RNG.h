@@ -5,8 +5,8 @@
 #ifndef TEST_RNG_H
 #define TEST_RNG_H
 
-#include "./include/Lookup3Hash.h"
-#include "./include/constant.h"
+#include "Lookup3Hash.h"
+#include "SpinalCodeConfig.h"
 #include<stdint.h>
 
 typedef struct

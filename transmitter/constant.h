@@ -9,7 +9,7 @@
 
 
 /* Parameters for LED Phisycal Layer*/
-#define GPIO_LEFT_LIGHT 26
+#define GPIO_LEFT_LIGHT 26 
 #define GPIO_RIGHT_LIGHT 27
 
 #define  FRAME_HEADER "11110000"

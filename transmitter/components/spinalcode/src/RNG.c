@@ -2,7 +2,7 @@
 // Created by Administrator on 2023/6/20.
 //
 
-#include "./include/RNG.h"
+#include "RNG.h"
 
 
  int next(RNG *rng)
