@@ -1,14 +1,19 @@
-## 光通信车辆编队
-``` 
-IDE：VS Code
-开发环境：ESP-IDF
-```
-```
-功能：
-1.基本车辆控制
-2.灯光控制
+# Ver1.0
+low-speed VLC scheme
 
-更新计划：
-1.PID车辆控制
-2.信号编码
-```
+# Ver1.1
+Do some refractor stuff of the Ver1.0, more readable.
+
+# Ver2.1
+1. Intergrated all encoding scheme and use OOK demodulation.
+    - **Spinalcode->Network coding->Manchester Encode->OOK**
+
+2. Some params:
+    - Transmitter frequency: 5KHz
+    - ADC sampling rate: 100KHz
+    - SpinalCode: k=3,B=2,c=6
+    - network coding:XOR
+
+## Interesting stuff
+1. Decoding is much faster than ADC sampling.
+2. Using ADC to demodulate OOK is not precise, therefore the next step is to use GPIO to demodulate.
